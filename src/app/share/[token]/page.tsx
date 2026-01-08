@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useShareByToken } from "@/hooks/useItinerarySharing";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,11 +27,24 @@ export default function SharedItineraryPage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
   const token = params?.token;
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { data: shareData, isLoading, error } = useShareByToken(token || "");
   // const updateStatus = useUpdateCollaborationStatus();
 
-  if (!token || isLoading) {
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user && token) {
+      const returnUrl = `/share/${token}`;
+      router.push(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`);
+    }
+  }, [user, authLoading, token, router]);
+
+  if (!token || isLoading || authLoading) {
+    return <Loading />;
+  }
+
+  // Don't render content if user is not authenticated (will redirect)
+  if (!user) {
     return <Loading />;
   }
 
@@ -52,7 +66,25 @@ export default function SharedItineraryPage() {
     );
   }
 
-  const itinerary = shareData.itineraries as Itinerary;
+  const itinerary = shareData.itineraries as Itinerary | null;
+
+  if (!itinerary) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Không tìm thấy lịch trình</CardTitle>
+            <CardDescription>
+              Lịch trình được chia sẻ không còn tồn tại hoặc đã bị xóa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push("/")}>Về trang chủ</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const canEdit = shareData.permission === "edit";
 
   return (
@@ -185,36 +217,13 @@ export default function SharedItineraryPage() {
             </div>
 
             <div className="pt-4 border-t">
-              {user ? (
-                <Button
-                  onClick={() => router.push(`/itinerary/${itinerary.id}`)}
-                  className="w-full h-12 text-base font-semibold bg-linear-to-r from-primary to-accent hover:opacity-90 transition-opacity"
-                  size="lg"
-                >
-                  {canEdit ? "Mở để chỉnh sửa" : "Xem chi tiết"}
-                </Button>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground text-center">
-                    Đăng nhập để {canEdit ? "chỉnh sửa" : "xem"} lịch trình này
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-12 text-base"
-                      onClick={() => router.push("/auth")}
-                    >
-                      Đăng nhập
-                    </Button>
-                    <Button
-                      className="flex-1 h-12 text-base bg-linear-to-r from-primary to-accent hover:opacity-90 transition-opacity"
-                      onClick={() => router.push(`/itinerary/${itinerary.id}`)}
-                    >
-                      Xem không đăng nhập
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <Button
+                onClick={() => router.push(`/itinerary/${itinerary.id}`)}
+                className="w-full h-12 text-base font-semibold bg-linear-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                size="lg"
+              >
+                {canEdit ? "Mở để chỉnh sửa" : "Xem chi tiết"}
+              </Button>
             </div>
           </CardContent>
         </Card>

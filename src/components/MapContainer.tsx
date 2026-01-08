@@ -740,11 +740,17 @@ export function MapContainer() {
       // Fetch and draw route if we have 2+ points
       if (coords.length >= 2) {
         fetchRoute(coords, routeProfile).then((routeGeometry) => {
-          if (!routeGeometry || !map.getSource) {
+          // Map may have been unmounted or style reset while the request was in-flight
+          const mapCurrent = mapRef.current;
+          if (!mapCurrent || !isMapLoaded) {
+            return;
+          }
+
+          if (!routeGeometry || !mapCurrent.getSource) {
             // Fallback to straight line if route fetch fails
             const sourceId = `route-${selectedDay.id}`;
-            if (!map.getSource(sourceId)) {
-              map.addSource(sourceId, {
+            if (!mapCurrent.getSource(sourceId)) {
+              mapCurrent.addSource(sourceId, {
                 type: "geojson",
                 data: {
                   type: "Feature",
@@ -755,7 +761,7 @@ export function MapContainer() {
                   properties: {},
                 },
               });
-              map.addLayer({
+              mapCurrent.addLayer({
                 id: sourceId,
                 type: "line",
                 source: sourceId,
@@ -771,8 +777,8 @@ export function MapContainer() {
           }
 
           const sourceId = `route-${selectedDay.id}`;
-          if (!map.getSource(sourceId)) {
-            map.addSource(sourceId, {
+          if (!mapCurrent.getSource(sourceId)) {
+            mapCurrent.addSource(sourceId, {
               type: "geojson",
               data: {
                 type: "Feature",
@@ -782,7 +788,7 @@ export function MapContainer() {
             });
 
             // Add route line layer
-            map.addLayer({
+            mapCurrent.addLayer({
               id: sourceId,
               type: "line",
               source: sourceId,
@@ -798,7 +804,7 @@ export function MapContainer() {
             });
 
             // Add route outline for better visibility
-            map.addLayer(
+            mapCurrent.addLayer(
               {
                 id: `${sourceId}-outline`,
                 type: "line",

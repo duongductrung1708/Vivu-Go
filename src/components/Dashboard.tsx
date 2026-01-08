@@ -161,12 +161,7 @@ export default function Dashboard() {
                                 Chỉnh sửa
                               </DropdownMenuItem>
                               <ItineraryShareDialog itineraryId={itinerary.id}>
-                                <DropdownMenuItem
-                                  onSelect={(e) => {
-                                    e.preventDefault();
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                                <DropdownMenuItem>
                                   <Share2 className="w-4 h-4 mr-2" />
                                   Chia sẻ
                                 </DropdownMenuItem>

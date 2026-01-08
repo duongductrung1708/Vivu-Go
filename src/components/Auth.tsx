@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { MapPin, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,12 +37,15 @@ export default function Auth() {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
 
   useEffect(() => {
     if (user) {
-      router.push("/dashboard");
+      const redirectTo = returnUrl || "/dashboard";
+      router.push(redirectTo);
     }
-  }, [user, router]);
+  }, [user, router, returnUrl]);
 
   if (authLoading) {
     return (

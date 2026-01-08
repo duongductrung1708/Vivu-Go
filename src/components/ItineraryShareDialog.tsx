@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, cloneElement, isValidElement } from "react";
 import { Copy, Link2, Mail, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -159,10 +158,62 @@ export function ItineraryShareDialog({
     }
   };
 
+  const handleTriggerSelect = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(true);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <>
+      {isValidElement(children)
+        ? cloneElement(children as React.ReactElement<{ onSelect?: (e: Event) => void; onClick?: (e: React.MouseEvent) => void }>, {
+            onSelect: (e: Event) => {
+              handleTriggerSelect(e);
+              const originalOnSelect = (children as React.ReactElement<{ onSelect?: (e: Event) => void }>).props?.onSelect;
+              if (originalOnSelect) {
+                originalOnSelect(e);
+              }
+            },
+            onClick: (e: React.MouseEvent) => {
+              e.stopPropagation();
+              const originalOnClick = (children as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>).props?.onClick;
+              if (originalOnClick) {
+                originalOnClick(e);
+              }
+            },
+          })
+        : (
+          <div onClick={() => setOpen(true)}>
+            {children}
+          </div>
+        )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent 
+          className="max-w-2xl max-h-[80vh] overflow-y-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+          onPointerDownOutside={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+        <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+          }}
+        >
         <DialogHeader>
           <DialogTitle>Chia sẻ lịch trình</DialogTitle>
           <DialogDescription>
@@ -369,7 +420,9 @@ export function ItineraryShareDialog({
             </div>
           </TabsContent>
         </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
