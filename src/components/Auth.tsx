@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { MapPin, Mail, Lock, User, ArrowRight } from "lucide-react";
@@ -22,7 +22,7 @@ const emailSchema = z.string().email("Email không hợp lệ");
 const passwordSchema = z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự");
 const nameSchema = z.string().min(2, "Tên phải có ít nhất 2 ký tự");
 
-export default function Auth() {
+function AuthContent() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +38,7 @@ export default function Auth() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl");
+  const returnUrl = searchParams?.get("returnUrl") || null;
 
   useEffect(() => {
     if (user) {
@@ -246,5 +246,17 @@ export default function Auth() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function Auth() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-primary text-xl">Đang tải...</div>
+      </div>
+    }>
+      <AuthContent />
+    </Suspense>
   );
 }
