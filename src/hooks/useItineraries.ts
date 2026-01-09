@@ -195,3 +195,5 @@ export function useItinerary(id: string) {
     enabled: !!user && !!id,
   });
 }
+
+// (PDF export now uses itinerary.trip_data directly, so no extra hook needed)

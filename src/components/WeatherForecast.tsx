@@ -74,6 +74,24 @@ export function WeatherForecast({
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
+    // Nếu không có ngày nào trong 5 ngày tới thì không gọi API
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxAllowedDate = new Date(today);
+    maxAllowedDate.setDate(maxAllowedDate.getDate() + 5);
+
+    const hasDateWithin5Days = trip.days.some((day) => {
+      const d = new Date(day.date);
+      d.setHours(0, 0, 0, 0);
+      return d >= today && d <= maxAllowedDate;
+    });
+
+    if (!latitude || !longitude || trip.days.length === 0 || !hasDateWithin5Days) {
+      setIsLoading(false);
+      setForecast(null);
+      return;
+    }
+
     const fetchForecast = async () => {
       setIsLoading(true);
       setError(null);
@@ -115,10 +133,8 @@ export function WeatherForecast({
       }
     };
 
-    if (latitude && longitude && trip.days.length > 0) {
-      fetchForecast();
-    }
-  }, [latitude, longitude, trip.days.length]);
+    fetchForecast();
+  }, [latitude, longitude, trip.days]);
 
   // Lọc dự báo để chỉ hiển thị các ngày trong chuyến đi
   const tripDates = new Set(trip.days.map((day) => day.date));

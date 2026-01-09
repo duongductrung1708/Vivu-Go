@@ -31,6 +31,27 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Tính khoảng cách ngày so với hôm nay trước khi gọi API
+    if (!latitude || !longitude || !date) {
+      setIsLoading(false);
+      return;
+    }
+
+    const targetDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+    const daysFromToday = Math.floor(
+      (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Nếu ngày vượt quá 5 ngày tới thì không gọi API luôn
+    if (daysFromToday > 5 || daysFromToday < 0) {
+      setIsLoading(false);
+      setWeather(null);
+      return;
+    }
+
     const fetchWeather = async () => {
       setIsLoading(true);
       setWeather(null);
@@ -106,9 +127,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
       }
     };
 
-    if (latitude && longitude && date) {
-      fetchWeather();
-    }
+    fetchWeather();
   }, [latitude, longitude, date]);
 
   if (isLoading) {

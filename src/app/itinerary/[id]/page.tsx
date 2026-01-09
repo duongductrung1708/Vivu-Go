@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, FileDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/Loading";
 import { MapContainer } from "@/components/MapContainer";
@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary, useUpdateItinerary } from "@/hooks/useItineraries";
 import { useTripStore } from "@/store/useTripStore";
 import { useToast } from "@/hooks/use-toast";
+import { exportItineraryToPDF } from "@/utils/pdfExport";
 
 // Force dynamic rendering to prevent SSR issues with AuthProvider
 export const dynamic = "force-dynamic";
@@ -128,6 +129,22 @@ export default function ItineraryDetailPage() {
     );
   }
 
+  const handleExportPdf = async () => {
+    try {
+      await exportItineraryToPDF(itinerary);
+      toast({
+        title: "Đã xuất PDF",
+        description: "File PDF lịch trình đã được tải xuống.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi khi xuất PDF",
+        description: error?.message || "Vui lòng thử lại sau.",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
       <Navbar variant="fixed" />
@@ -180,6 +197,10 @@ export default function ItineraryDetailPage() {
               >
                 <Save className="w-4 h-4 mr-2" />
                 {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={handleExportPdf}>
+                <FileDown className="w-4 h-4 mr-2" />
+                Xuất PDF
               </Button>
             </div>
           </div>

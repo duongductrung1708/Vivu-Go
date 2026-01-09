@@ -39,7 +39,7 @@ export default function Navbar({ variant = "default", className }: NavbarProps) 
           <span className="font-bold text-xl">Vivu Go</span>
         </Link>
         <div className="flex items-center gap-3">
-          <ThemeToggle />
+          <ThemeToggle variant="inline" />
           {user ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm">

@@ -28,7 +28,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
           <TooltipProvider>
-            <ThemeToggle />
             <ScrollToTopButton />
             {children}
             <Toaster />

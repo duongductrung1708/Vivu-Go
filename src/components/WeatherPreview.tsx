@@ -63,6 +63,29 @@ export function WeatherPreview({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!latitude || !longitude || !startDate || !endDate) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Nếu khoảng ngày chọn không giao với 5 ngày tới thì không gọi API
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const maxAllowedDate = new Date(today);
+    maxAllowedDate.setDate(maxAllowedDate.getDate() + 5);
+
+    // Nếu toàn bộ khoảng [start, end] nằm sau maxAllowedDate thì bỏ qua
+    if (start > maxAllowedDate) {
+      setIsLoading(false);
+      setForecast([]);
+      return;
+    }
+
     const fetchForecast = async () => {
       setIsLoading(true);
       setError(null);
@@ -100,9 +123,7 @@ export function WeatherPreview({
       }
     };
 
-    if (latitude && longitude && startDate && endDate) {
-      fetchForecast();
-    }
+    fetchForecast();
   }, [latitude, longitude, startDate, endDate]);
 
   if (isLoading) {

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -132,7 +132,7 @@
   --color-peach-foreground: hsl(var(--peach-foreground));
   --color-lavender: hsl(var(--lavender));
   --color-lavender-foreground: hsl(var(--lavender-foreground));
-  --font-sans: var(--font-geist-sans), 'Quicksand', sans-serif;
+  --font-sans: var(--font-geist-sans), "Quicksand", sans-serif;
   --font-mono: var(--font-geist-mono);
   --radius: var(--radius);
 }
@@ -146,7 +146,7 @@ body {
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: var(--font-geist-sans), 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
 }
 
 /* Custom Scrollbar Styles - Compact & Clean */
@@ -214,7 +214,11 @@ body {
 
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
+    background: linear-gradient(
+      to right,
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -224,7 +228,8 @@ body {
 
 /* Pulse animation for user location marker */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
