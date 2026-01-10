@@ -7,7 +7,7 @@ import { Timeline } from "@/components/Timeline";
 import { TripConfig } from "@/components/TripConfig";
 import { useTripStore } from "@/store/useTripStore";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/Loading";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +37,7 @@ export default function TripPage() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [saveDescription, setSaveDescription] = useState("");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { getTotalCost, getCostPerPerson, trip, resetTrip } = useTripStore();
   const createItinerary = useCreateItinerary();
 
@@ -110,11 +111,11 @@ export default function TripPage() {
       
       // Redirect to dashboard after saving
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error.message || "Không thể lưu lịch trình. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.",
       });
     }
   };
@@ -126,8 +127,32 @@ export default function TripPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
       <Navbar variant="fixed" />
-      <main className="flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24">
-        <section className="flex h-full w-full flex-col gap-2 overflow-hidden md:w-[420px]">
+      <main className="flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24 relative">
+        {/* Toggle Sidebar Button */}
+        <button
+          type="button"
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className={`fixed z-50 rounded-full bg-card border border-border p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${
+            isSidebarCollapsed
+              ? "left-4 top-20"
+              : "left-[calc(420px+0.5rem)] top-20 md:left-[calc(420px+0.5rem)]"
+          }`}
+          aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
+        >
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen className="h-5 w-5 text-foreground" />
+          ) : (
+            <PanelLeftClose className="h-5 w-5 text-foreground" />
+          )}
+        </button>
+
+        <section
+          className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
+            isSidebarCollapsed
+              ? "w-0 md:w-0 opacity-0 pointer-events-none"
+              : "w-full md:w-[420px] opacity-100"
+          }`}
+        >
           <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -182,7 +207,7 @@ export default function TripPage() {
         </section>
 
         <section className="h-full w-full shrink-0 md:w-auto md:flex-1">
-          <MapContainer />
+          <MapContainer sidebarCollapsed={isSidebarCollapsed} />
         </section>
       </main>
 

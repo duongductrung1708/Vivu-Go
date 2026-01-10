@@ -116,7 +116,7 @@ export default function Dashboard() {
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card 
-                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/50 bg-linear-to-br from-card to-card/50 overflow-hidden relative"
+                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 border-border hover:border-primary/50 bg-linear-to-br from-card to-card/50 overflow-hidden relative"
                       onClick={() => router.push(`/itinerary/${itinerary.id}`)}
                     >
                       {/* Gradient overlay on hover */}

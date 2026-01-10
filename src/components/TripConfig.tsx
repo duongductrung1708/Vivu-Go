@@ -210,7 +210,7 @@ export function TripConfig() {
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full rounded-2xl bg-sky-500 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-sky-600"
+          className="w-full rounded-2xl bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
         >
           Lưu cấu hình
         </motion.button>

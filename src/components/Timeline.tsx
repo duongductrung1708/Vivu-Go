@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, type DragEndEvent, type DragStartEvent, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -27,6 +27,7 @@ const timeSlotLabel: Record<TimeSlot, string> = {
 export function Timeline() {
   const isMounted = useIsMounted();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
   const {
     trip,
     selectedDayId,
@@ -40,13 +41,27 @@ export function Timeline() {
     showNearbyPlacesForPlace,
   } = useTripStore();
 
+  // Configure sensors for drag and drop (including touch support)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px of movement before starting drag
+      },
+    })
+  );
+
   const selectedDay = useMemo(
     () => trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0],
     [trip.days, selectedDayId]
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActivePlaceId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActivePlaceId(null);
     if (!over || !selectedDay) {
       return;
     }
@@ -167,7 +182,7 @@ export function Timeline() {
         </span>
       </div>
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div
           className="flex-1 min-h-0 space-y-2 overflow-y-auto"
           onClick={(e) => {
@@ -190,10 +205,11 @@ export function Timeline() {
                   <motion.div
                     key={place.id}
                     layout
+                    layoutId={place.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.15, type: "spring", stiffness: 300, damping: 30 }}
                   >
                     <PlaceCard
                       place={place}
@@ -257,6 +273,29 @@ export function Timeline() {
             Thêm địa điểm (tìm kiếm)
           </button>
         </div>
+        <DragOverlay>
+          {activePlaceId && selectedDay ? (() => {
+            const activePlace = selectedDay.places.find(p => p.id === activePlaceId);
+            return activePlace ? (
+              <div className="rotate-3 opacity-90">
+                <PlaceCard
+                  place={activePlace}
+                  timeLabel={timeSlotLabel[activePlace.timeSlot]}
+                  isActive={false}
+                  onClick={() => {}}
+                  onDelete={() => {}}
+                  onUpdateCost={() => {}}
+                  onUpdateName={() => {}}
+                  onUpdateTimeSlot={() => {}}
+                  onUpdateCategory={() => {}}
+                  onUpdateTime={() => {}}
+                  onRemoveLocation={() => {}}
+                  onShowNearbyPlaces={() => {}}
+                />
+              </div>
+            ) : null;
+          })() : null}
+        </DragOverlay>
       </DndContext>
 
       {selectedDay && (

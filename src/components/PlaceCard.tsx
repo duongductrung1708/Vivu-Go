@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Clock,
   Coffee,
@@ -20,6 +22,7 @@ import {
   Tag,
   ChevronDown,
   Navigation,
+  GripVertical,
 } from "lucide-react";
 import type { Place, TimeSlot } from "@/store/useTripStore";
 
@@ -163,19 +166,48 @@ export function PlaceCard({
     setIsEditingName(false);
   };
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition: dragTransition,
+    isDragging,
+  } = useSortable({ id: place.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: dragTransition || undefined,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
   return (
     <motion.div
+      ref={setNodeRef}
+      style={style}
       role="button"
       tabIndex={0}
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className={`group flex w-full cursor-pointer mt-4 flex-col rounded-3xl border bg-card/80 p-4 text-left shadow-sm transition-colors ${
+      whileHover={isDragging ? {} : { y: -2 }}
+      whileTap={isDragging ? {} : { scale: 0.98 }}
+      animate={isDragging ? { scale: 1.02 } : { scale: 1 }}
+      className={`group flex w-full cursor-pointer mt-4 flex-col rounded-3xl border bg-card/80 p-4 text-left shadow-sm transition-colors relative ${
         isActive
           ? "border-primary shadow-md"
           : "border-border hover:border-primary/50"
-      }`}
+      } ${isDragging ? "z-50 shadow-lg" : ""}`}
     >
+      {/* Drag Handle - Absolute positioned to not affect layout */}
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute left-0 top-7 cursor-grab active:cursor-grabbing p-1.5 text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 z-10"
+        aria-label="Kéo để sắp xếp"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
       <div className="mb-2 flex items-center justify-between gap-2">
         {isEditingTimeSlot ? (
           <div className="flex items-center gap-1.5" ref={timeSlotDropdownRef}>
@@ -318,7 +350,7 @@ export function PlaceCard({
                             }}
                             className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition ${
                               place.category === option.value
-                                ? "bg-sky-500 text-white"
+                                ? "bg-primary text-primary-foreground"
                                 : "text-foreground hover:bg-primary/10"
                             }`}
                           >

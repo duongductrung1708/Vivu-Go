@@ -31,7 +31,7 @@ export default function Navbar({ variant = "default", className }: NavbarProps) 
 
   return (
     <nav className={navClasses}>
-      <div className="container mx-auto flex items-center justify-between">
+      <div className="container mx-auto flex items-center justify-between px-0 lg:px-8">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-xl flex items-center justify-center">
             <MapPin className="w-5 h-5 text-white" />
@@ -49,12 +49,10 @@ export default function Navbar({ variant = "default", className }: NavbarProps) 
                 </span>
               </div>
               <Button
-                variant="outline"
+                variant="ghost" size="icon"
                 onClick={handleSignOut}
-                className="rounded-full"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Đăng xuất
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           ) : (

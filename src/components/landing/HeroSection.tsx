@@ -15,7 +15,7 @@ const HeroSection = () => {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/40 rounded-full blur-3xl" />
 
-      <div className="container mx-auto px-4 py-20 relative z-10">
+      <div className="container mx-auto px-4 py-20 relative z-10 mt-4">
         <div className="flex flex-col lg:flex-row items-center gap-12 min-h-[80vh]">
           {/* Left Content */}
           <motion.div

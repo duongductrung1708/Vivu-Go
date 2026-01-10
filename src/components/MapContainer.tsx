@@ -41,7 +41,11 @@ type RouteCache = {
   duration: number; // seconds
 };
 
-export function MapContainer() {
+type MapContainerProps = {
+  sidebarCollapsed?: boolean;
+};
+
+export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -872,6 +876,29 @@ export function MapContainer() {
     });
   }, [selectedPlaceId, selectedDay, isMapLoaded]);
 
+  // Resize map when sidebar collapses/expands or container size changes
+  useEffect(() => {
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !isMapLoaded || !container) return;
+
+    // Resize immediately when sidebar state changes
+    const timeoutId = setTimeout(() => {
+      map.resize();
+    }, 300); // Match the transition duration (300ms)
+
+    // Also use ResizeObserver to handle any other size changes
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, [sidebarCollapsed, isMapLoaded]);
+
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 bg-slate-100">
       <div
@@ -880,13 +907,13 @@ export function MapContainer() {
         style={{ pointerEvents: "auto" }}
       />
       {!isMapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 pointer-events-none">
-          <div className="text-sm text-slate-500">Loading map...</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-muted pointer-events-none">
+          <div className="text-sm text-muted-foreground">Loading map...</div>
         </div>
       )}
       {/* Place selection banner */}
       {isMapLoaded && selectedPlaceId && selectedDay && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-sky-500 px-4 py-2 text-xs font-medium text-white shadow-lg pointer-events-auto animate-pulse">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-lg pointer-events-auto animate-pulse">
           <span className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5" />
             Nhấp vào bản đồ để đặt vị trí cho &quot;
@@ -918,7 +945,7 @@ export function MapContainer() {
             className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
               useMyLocation
                 ? "bg-primary text-primary-foreground"
-                : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
             }`}
             title={
               useMyLocation
@@ -943,7 +970,7 @@ export function MapContainer() {
             className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
               isSelectingCustomLocation || customSelectedLocation
                 ? "bg-primary text-primary-foreground"
-                : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
             }`}
             title="Chọn vị trí cụ thể trên bản đồ"
           >
@@ -970,7 +997,7 @@ export function MapContainer() {
                 setCustomSelectedLocation(null);
                 setIsSelectingCustomLocation(false);
               }}
-              className="flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+              className="flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
               title="Xóa vị trí đã chọn"
             >
               <X className="h-4 w-4" />
@@ -990,7 +1017,7 @@ export function MapContainer() {
                 className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                   isSelectingLocation
                     ? "bg-accent text-accent-foreground animate-pulse"
-                    : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
                 }`}
                 title="Cập nhật vị trí của bạn trên bản đồ"
               >
@@ -1014,7 +1041,7 @@ export function MapContainer() {
                 className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                   showNearbyPlaces
                     ? "bg-primary text-primary-foreground"
-                    : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
                 }`}
                 title="Xem địa điểm xung quanh"
               >
@@ -1056,7 +1083,7 @@ export function MapContainer() {
               className={`mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                 showNearbyPlaces
                   ? "bg-primary text-primary-foreground"
-                  : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                  : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
               }`}
               title="Xem địa điểm xung quanh vị trí đã chọn"
             >
@@ -1152,7 +1179,7 @@ export function MapContainer() {
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-lg transition ${
                   is3DMode
                     ? "bg-primary text-primary-foreground"
-                    : "bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white"
+                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
                 }`}
                 title={is3DMode ? "Tắt chế độ 3D" : "Bật chế độ 3D"}
               >
@@ -1164,14 +1191,14 @@ export function MapContainer() {
                 <span>{is3DMode ? "2D" : "3D"}</span>
               </button>
 
-              <div className="flex items-center gap-1 rounded-lg bg-white/95 backdrop-blur-sm shadow-lg overflow-hidden">
+              <div className="flex items-center gap-1 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setRouteProfile("driving")}
                   className={`px-3 py-2 transition ${
                     routeProfile === "driving"
-                      ? "bg-sky-500 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                   title="Đi bằng ô tô"
                 >
@@ -1182,8 +1209,8 @@ export function MapContainer() {
                   onClick={() => setRouteProfile("walking")}
                   className={`px-3 py-2 transition ${
                     routeProfile === "walking"
-                      ? "bg-sky-500 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                   title="Đi bộ"
                 >
@@ -1194,8 +1221,8 @@ export function MapContainer() {
                   onClick={() => setRouteProfile("cycling")}
                   className={`px-3 py-2 transition ${
                     routeProfile === "cycling"
-                      ? "bg-sky-500 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                   title="Đi bằng xe đạp"
                 >
@@ -1205,19 +1232,19 @@ export function MapContainer() {
 
               {/* Route Info */}
               {formatRouteInfo && (
-                <div className="rounded-lg bg-white/95 backdrop-blur-sm px-3 py-2 text-xs text-slate-700 shadow-lg">
+                <div className="rounded-lg bg-card/95 backdrop-blur-sm px-3 py-2 text-xs text-foreground shadow-lg">
                   <div className="flex items-center gap-2">
-                    <Route className="h-4 w-4 text-sky-500" />
+                    <Route className="h-4 w-4 text-primary" />
                     <div className="flex-1">
                       {hasUserLocation && (
-                        <div className="text-[10px] text-sky-600 font-medium mb-0.5">
+                        <div className="text-[10px] text-primary font-medium mb-0.5">
                           📍 Từ vị trí của bạn
                         </div>
                       )}
                       <div className="font-medium">
                         {formatRouteInfo.distance}
                       </div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-muted-foreground">
                         {formatRouteInfo.duration}
                       </div>
                     </div>
@@ -1226,7 +1253,7 @@ export function MapContainer() {
               )}
 
               {isLoadingRoute && (
-                <div className="rounded-lg bg-white/95 backdrop-blur-sm px-3 py-2 text-xs text-slate-600 shadow-lg">
+                <div className="rounded-lg bg-card/95 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground shadow-lg">
                   Đang tính toán đường đi...
                 </div>
               )}
@@ -1235,7 +1262,7 @@ export function MapContainer() {
         })()}
 
       {isMapLoaded && !selectedPlaceId && (
-        <div className="absolute bottom-3 left-3 z-20 rounded-lg bg-white/90 backdrop-blur-sm px-3 py-2 text-xs text-slate-600 shadow-md pointer-events-none">
+        <div className="absolute bottom-3 left-3 z-20 rounded-lg bg-card/90 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground shadow-md pointer-events-none">
           💡 Mẹo: Chọn một địa điểm, sau đó nhấp vào bản đồ để đặt vị trí
         </div>
       )}

@@ -433,28 +433,28 @@ export function PlaceSearchModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl"
+          className="w-full max-w-md rounded-3xl bg-card p-6 shadow-xl"
         >
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="text-lg font-semibold text-foreground">
               Thêm Địa Điểm Mới
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Mode Toggle */}
-          <div className="mb-4 flex gap-2 rounded-2xl bg-slate-100 p-1">
+          <div className="mb-4 flex gap-2 rounded-2xl bg-muted p-1">
             <button
               type="button"
               onClick={() => {
@@ -463,8 +463,8 @@ export function PlaceSearchModal({
               }}
               className={`flex-1 rounded-xl px-3 py-1.5 text-xs font-medium transition ${
                 searchMode === "search"
-                  ? "bg-white text-sky-600 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-card text-primary shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Search className="mr-1.5 inline h-3.5 w-3.5" />
@@ -479,8 +479,8 @@ export function PlaceSearchModal({
               }}
               className={`flex-1 rounded-xl px-3 py-1.5 text-xs font-medium transition ${
                 searchMode === "coordinates"
-                  ? "bg-white text-sky-600 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-card text-primary shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Navigation className="mr-1.5 inline h-3.5 w-3.5" />
@@ -492,13 +492,13 @@ export function PlaceSearchModal({
           {searchMode === "search" && (
             <div className="mb-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Tìm kiếm địa điểm hoặc địa chỉ (ví dụ: Hồ Gươm, 123 Phố Hàng Bông, Phở Bưng Hàng Trống)..."
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="w-full rounded-2xl border border-border bg-muted py-2 pl-10 pr-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   autoFocus
                 />
               </div>
@@ -509,7 +509,7 @@ export function PlaceSearchModal({
           {searchMode === "coordinates" && (
             <div className="mb-4 space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   Vĩ độ (Latitude)
                 </label>
                 <input
@@ -518,15 +518,15 @@ export function PlaceSearchModal({
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   placeholder="21.0278"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="w-full rounded-2xl border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   autoFocus
                 />
-                <p className="mt-1 text-[10px] text-slate-400">
+                <p className="mt-1 text-[10px] text-muted-foreground">
                   Khoảng: -90 đến 90 (Ví dụ: 21.0278 cho Hà Nội)
                 </p>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   Kinh độ (Longitude)
                 </label>
                 <input
@@ -535,9 +535,9 @@ export function PlaceSearchModal({
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   placeholder="105.8342"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="w-full rounded-2xl border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
-                <p className="mt-1 text-[10px] text-slate-400">
+                <p className="mt-1 text-[10px] text-muted-foreground">
                   Khoảng: -180 đến 180 (Ví dụ: 105.8342 cho Hà Nội)
                 </p>
               </div>
@@ -545,7 +545,7 @@ export function PlaceSearchModal({
                 type="button"
                 onClick={handleAddByCoordinates}
                 disabled={!latitude || !longitude}
-                className="w-full rounded-2xl bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Thêm địa điểm từ tọa độ
               </button>
@@ -553,13 +553,13 @@ export function PlaceSearchModal({
           )}
 
           {isSearching && (
-            <div className="mb-4 text-center text-xs text-slate-500">
+            <div className="mb-4 text-center text-xs text-muted-foreground">
               Đang tìm kiếm...
             </div>
           )}
 
           {!isSearching && query.length >= 3 && results.length === 0 && (
-            <div className="mb-4 text-center text-xs text-slate-500">
+            <div className="mb-4 text-center text-xs text-muted-foreground">
               Không tìm thấy kết quả. Thử tìm kiếm với tên khác hoặc địa chỉ cụ
               thể hơn.
             </div>
@@ -595,22 +595,22 @@ export function PlaceSearchModal({
                     key={result.id}
                     type="button"
                     onClick={() => handleSelectPlace(result)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left text-sm transition hover:border-sky-300 hover:bg-sky-50"
+                    className="w-full rounded-2xl border border-border bg-card p-3 text-left text-sm transition hover:border-primary/50 hover:bg-primary/10"
                   >
                     <div className="flex items-start gap-2">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-slate-900">
+                          <p className="font-medium text-foreground">
                             {displayName}
                           </p>
                           {typeLabel[resultType] && (
-                            <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                               {typeLabel[resultType]}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {fullAddress}
                         </p>
                       </div>
@@ -621,7 +621,7 @@ export function PlaceSearchModal({
             </div>
           )}
 
-          <div className="space-y-3 border-t border-slate-200 pt-4">
+          <div className="space-y-3 border-t border-border pt-4">
             <div>
               <label className="mb-1 flex items-center gap-1 text-xs font-medium text-slate-600">
                 <Clock className="h-3.5 w-3.5" />
@@ -634,7 +634,7 @@ export function PlaceSearchModal({
                     e.stopPropagation();
                     setIsTimeSlotOpen(!isTimeSlotOpen);
                   }}
-                  className="flex w-full items-center gap-2 rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="flex w-full items-center gap-2 rounded-2xl border-2 border-border bg-muted px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   {(() => {
                     const selected = timeSlotOptions.find(
@@ -643,7 +643,7 @@ export function PlaceSearchModal({
                     const Icon = selected?.icon || Sunrise;
                     return (
                       <>
-                        <Icon className="h-4 w-4 text-slate-400" />
+                        <Icon className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1 text-left">
                           {selected?.label || "Sáng"}
                         </span>
@@ -659,7 +659,7 @@ export function PlaceSearchModal({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-0 top-full z-50 mt-1 w-full rounded-2xl border-2 border-slate-200 bg-white shadow-lg"
+                      className="absolute left-0 top-full z-50 mt-1 w-full rounded-2xl border-2 border-border bg-card shadow-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {timeSlotOptions.map((option) => {
@@ -675,15 +675,15 @@ export function PlaceSearchModal({
                             }}
                             className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition ${
                               selectedTimeSlot === option.value
-                                ? "bg-sky-500 text-white"
-                                : "text-slate-900 hover:bg-slate-50"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground hover:bg-muted"
                             }`}
                           >
                             <Icon
                               className={`h-4 w-4 ${
                                 selectedTimeSlot === option.value
-                                  ? "text-white"
-                                  : "text-slate-400"
+                                  ? "text-primary-foreground"
+                                  : "text-muted-foreground"
                               }`}
                             />
                             <span>{option.label}</span>
@@ -708,7 +708,7 @@ export function PlaceSearchModal({
                     e.stopPropagation();
                     setIsCategoryOpen(!isCategoryOpen);
                   }}
-                  className="flex w-full items-center gap-2 rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="flex w-full items-center gap-2 rounded-2xl border-2 border-border bg-muted px-4 py-2 text-sm text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   {(() => {
                     const selected = categoryOptions.find(
@@ -717,7 +717,7 @@ export function PlaceSearchModal({
                     const Icon = selected?.icon || MapPin;
                     return (
                       <>
-                        <Icon className="h-4 w-4 text-slate-400" />
+                        <Icon className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1 text-left">
                           {selected?.label || "Tham Quan"}
                         </span>
@@ -733,7 +733,7 @@ export function PlaceSearchModal({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-0 top-full z-50 mt-1 w-full rounded-2xl border-2 border-slate-200 bg-white shadow-lg"
+                      className="absolute left-0 top-full z-50 mt-1 w-full rounded-2xl border-2 border-border bg-card shadow-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {categoryOptions.map((option) => {
@@ -749,15 +749,15 @@ export function PlaceSearchModal({
                             }}
                             className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition ${
                               selectedCategory === option.value
-                                ? "bg-sky-500 text-white"
-                                : "text-slate-900 hover:bg-slate-50"
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground hover:bg-muted"
                             }`}
                           >
                             <Icon
                               className={`h-4 w-4 ${
                                 selectedCategory === option.value
-                                  ? "text-white"
-                                  : "text-slate-400"
+                                  ? "text-primary-foreground"
+                                  : "text-muted-foreground"
                               }`}
                             />
                             <span>{option.label}</span>
