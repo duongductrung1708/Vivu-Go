@@ -77,18 +77,20 @@ export function useShareByToken(token: string) {
         .single();
 
       if (shareError) throw shareError;
-      
+
       // Check if expired
       if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
         throw new Error("Share link has expired");
       }
 
       // Use the SECURITY DEFINER function to get itinerary (bypasses RLS)
-      const { data: itineraryData, error: itineraryError } = await supabase
-        .rpc("get_itinerary_by_share_token", { p_token: token });
+      const { data: itineraryData, error: itineraryError } = await supabase.rpc(
+        "get_itinerary_by_share_token",
+        { p_token: token }
+      );
 
       if (itineraryError) throw itineraryError;
-      
+
       if (!itineraryData || itineraryData.length === 0) {
         throw new Error("Itinerary not found");
       }
@@ -129,8 +131,9 @@ export function useCreateShare() {
       if (!user) throw new Error("User not authenticated");
 
       // Generate token
-      const { data: tokenData, error: tokenError } = await supabase
-        .rpc("generate_share_token");
+      const { data: tokenData, error: tokenError } = await supabase.rpc(
+        "generate_share_token"
+      );
 
       if (tokenError) throw tokenError;
 
@@ -169,7 +172,9 @@ export function useUpdateShare() {
       updates,
     }: {
       shareId: string;
-      updates: Partial<Pick<ItineraryShare, "permission" | "expires_at" | "is_active">>;
+      updates: Partial<
+        Pick<ItineraryShare, "permission" | "expires_at" | "is_active">
+      >;
     }) => {
       const { data, error } = await supabase
         .from("itinerary_shares")
@@ -194,7 +199,12 @@ export function useDeleteShare() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ shareId, itineraryId }: { shareId: string; itineraryId: string }) => {
+    mutationFn: async ({
+      shareId,
+    }: {
+      shareId: string;
+      itineraryId: string;
+    }) => {
       const { error } = await supabase
         .from("itinerary_shares")
         .delete()
@@ -219,25 +229,78 @@ export function useItineraryCollaborators(itineraryId: string) {
     queryFn: async () => {
       if (!user) return [];
 
+      // Try RPC function first (if migration has been run)
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_itinerary_collaborators",
+        {
+          p_itinerary_id: itineraryId,
+        }
+      );
+
+      console.log("RPC call result:", {
+        rpcData,
+        rpcError,
+        hasData: !!rpcData,
+        dataLength: rpcData?.length,
+      });
+
+      // If RPC function exists and works, use it
+      if (rpcError) {
+        // Check if it's a "function does not exist" error
+        if (
+          rpcError.code === "42883" ||
+          rpcError.message?.includes("does not exist") ||
+          rpcError.message?.includes("function")
+        ) {
+          console.warn(
+            "RPC function 'get_itinerary_collaborators' not found. Please run migration 006_add_get_collaborators_function.sql. Using fallback query.",
+            rpcError
+          );
+        } else {
+          // Other errors (permission, etc.) - log but still try fallback
+          console.warn(
+            "Error calling RPC function 'get_itinerary_collaborators':",
+            rpcError
+          );
+        }
+      } else if (rpcData !== null && rpcData !== undefined) {
+        // RPC function succeeded - check if it has user_email/user_name
+        const hasUserInfo = rpcData.some(
+          (item: ItineraryCollaborator) => item.user_email || item.user_name
+        );
+        console.log("RPC function returned data:", {
+          count: rpcData.length,
+          hasUserInfo,
+          sample: rpcData[0],
+        });
+
+        if (hasUserInfo || rpcData.length === 0) {
+          // RPC function returned data with user info, or empty array
+          return (rpcData || []) as ItineraryCollaborator[];
+        } else {
+          // RPC function returned data but without user info - might be permission issue
+          console.warn(
+            "RPC function returned data but without user_email/user_name. This might be a permission issue."
+          );
+        }
+      }
+
       const { data, error } = await supabase
         .from("itinerary_collaborators")
-        .select(`
-          *,
-          user:user_id (
-            email,
-            raw_user_meta_data->full_name
-          )
-        `)
+        .select("*")
         .eq("itinerary_id", itineraryId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching collaborators:", error);
+        throw error;
+      }
 
-      // Transform the data to include user info
-      return (data || []).map((item: any) => ({
+      // Transform to match ItineraryCollaborator interface
+      return (data || []).map((item) => ({
         ...item,
-        user_email: item.user?.email,
-        user_name: item.user?.raw_user_meta_data?.full_name,
+        user_email: undefined, // Will be undefined until RPC function is available
+        user_name: undefined,
       })) as ItineraryCollaborator[];
     },
     enabled: !!user && !!itineraryId,
@@ -254,15 +317,21 @@ export function useInviteCollaborator() {
       if (!user) throw new Error("User not authenticated");
 
       // Use RPC function to invite collaborator by email
-      const { data, error } = await supabase.rpc('invite_collaborator_by_email', {
-        p_itinerary_id: input.itinerary_id,
-        p_email: input.email,
-        p_permission: input.permission,
-        p_invited_by: user.id
-      });
+      const { data, error } = await supabase.rpc(
+        "invite_collaborator_by_email",
+        {
+          p_itinerary_id: input.itinerary_id,
+          p_email: input.email,
+          p_permission: input.permission,
+          p_invited_by: user.id,
+        }
+      );
 
       if (error) {
-        throw new Error(error.message || "Không tìm thấy người dùng với email này. Người dùng cần đăng ký tài khoản trước.");
+        throw new Error(
+          error.message ||
+            "Không tìm thấy người dùng với email này. Người dùng cần đăng ký tài khoản trước."
+        );
       }
 
       // Get itinerary title for email
@@ -274,11 +343,14 @@ export function useInviteCollaborator() {
 
       // Get user name for email
       const { data: userData } = await supabase.auth.getUser();
-      const inviterName = userData?.user?.user_metadata?.full_name || userData?.user?.email || "Một người dùng";
+      const inviterName =
+        userData?.user?.user_metadata?.full_name ||
+        userData?.user?.email ||
+        "Một người dùng";
 
       // Send invitation email
       try {
-        await fetch("/api/send-invitation-email", {
+        const emailResponse = await fetch("/api/send-invitation-email", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -291,9 +363,19 @@ export function useInviteCollaborator() {
             permission: input.permission,
           }),
         });
+
+        const emailResult = await emailResponse.json();
+
+        if (!emailResponse.ok || !emailResult.success) {
+          console.error("Failed to send invitation email:", emailResult);
+          // Don't fail the invitation if email fails, but log the error
+          // The invitation is still created in the database
+        } else {
+          console.log("Invitation email sent successfully:", emailResult);
+        }
       } catch (emailError) {
         // Don't fail the invitation if email fails
-        console.error("Failed to send invitation email:", emailError);
+        console.error("Error calling email API:", emailError);
       }
 
       return data as ItineraryCollaborator;
@@ -315,7 +397,6 @@ export function useUpdateCollaborationStatus() {
     mutationFn: async ({
       collaborationId,
       status,
-      itineraryId,
     }: {
       collaborationId: string;
       status: "accepted" | "declined";
@@ -352,7 +433,6 @@ export function useRemoveCollaborator() {
   return useMutation({
     mutationFn: async ({
       collaborationId,
-      itineraryId,
     }: {
       collaborationId: string;
       itineraryId: string;
@@ -383,14 +463,21 @@ export function usePendingInvitations() {
 
       const { data, error } = await supabase
         .from("itinerary_collaborators")
-        .select(`
+        .select(
+          `
           *,
           itinerary:itinerary_id (
             id,
             title,
-            description
+            description,
+            start_date,
+            end_date,
+            total_budget,
+            people_count,
+            trip_data
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
@@ -399,5 +486,76 @@ export function usePendingInvitations() {
       return data || [];
     },
     enabled: !!user,
+  });
+}
+
+// Check if user owns an itinerary
+export function useIsItineraryOwner(itineraryId: string) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["is-itinerary-owner", itineraryId, user?.id],
+    queryFn: async () => {
+      if (!user || !itineraryId) return false;
+
+      // Use RPC function to check ownership (bypasses RLS)
+      const { data: isOwner, error } = await supabase.rpc(
+        "user_owns_itinerary",
+        {
+          p_itinerary_id: itineraryId,
+        }
+      );
+
+      if (error) {
+        // Fallback: try direct query
+        const { data: itinerary } = await supabase
+          .from("itineraries")
+          .select("user_id")
+          .eq("id", itineraryId)
+          .single();
+        return itinerary?.user_id === user.id;
+      }
+
+      return isOwner === true;
+    },
+    enabled: !!user && !!itineraryId,
+  });
+}
+
+// Check if user can edit an itinerary
+export function useCanEditItinerary(itineraryId: string) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["can-edit-itinerary", itineraryId, user?.id],
+    queryFn: async () => {
+      if (!user || !itineraryId) return false;
+
+      // Check if user is owner
+      const { data: itinerary, error: itineraryError } = await supabase
+        .from("itineraries")
+        .select("user_id")
+        .eq("id", itineraryId)
+        .single();
+
+      if (itineraryError) {
+        // If can't access, might be RLS blocking - try RPC function
+        const { data: isOwner } = await supabase.rpc("user_owns_itinerary", {
+          p_itinerary_id: itineraryId,
+        });
+        if (isOwner) return true;
+      } else {
+        if (itinerary?.user_id === user.id) return true;
+      }
+
+      // Check if user is collaborator with edit permission using RPC function
+      const { data: isEditor } = await supabase.rpc("user_is_collaborator", {
+        p_itinerary_id: itineraryId,
+        p_permission: "edit",
+      });
+
+      return isEditor === true;
+    },
+    enabled: !!user && !!itineraryId,
   });
 }

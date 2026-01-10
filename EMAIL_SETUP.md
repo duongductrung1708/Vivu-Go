@@ -8,21 +8,37 @@
 2. Tạo API key từ dashboard
 3. Thêm vào file `.env.local`:
 
+### Cho Testing (Không cần verify domain):
+
+```env
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+# Không cần set RESEND_FROM_EMAIL - sẽ tự động dùng onboarding@resend.dev
+```
+
+### Cho Production (Cần verify domain):
+
 ```env
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 RESEND_FROM_EMAIL=noreply@yourdomain.com
 ```
 
-**Lưu ý**: Bạn cần verify domain hoặc sử dụng email đã được Resend verify.
+**Lưu ý**:
 
-## Option 2: Sử dụng Nodemailer với SMTP
+- **Testing**: Không cần set `RESEND_FROM_EMAIL`, hệ thống sẽ tự động dùng `onboarding@resend.dev` (đã được Resend verify sẵn)
+- **Production**: Bạn cần verify domain của mình trong [Resend Dashboard](https://resend.com/domains) trước khi sử dụng email từ domain đó
+- **Lỗi 403**: Nếu gặp lỗi "domain is not verified", hãy:
+  1. Xóa `RESEND_FROM_EMAIL` để dùng email test, HOẶC
+  2. Verify domain của bạn trong Resend Dashboard
 
-1. Cài đặt nodemailer:
+## Option 2: Sử dụng SMTP Gmail (Đã được tích hợp sẵn)
 
-```bash
-npm install nodemailer
-npm install --save-dev @types/nodemailer
-```
+1. **Tạo App Password cho Gmail:**
+
+   - Vào [Google Account Settings](https://myaccount.google.com/)
+   - Security → 2-Step Verification (bật nếu chưa bật)
+   - Security → App passwords
+   - Tạo app password mới cho "Mail"
+   - Copy password (16 ký tự, không có khoảng trắng)
 
 2. Thêm vào `.env.local`:
 
@@ -30,11 +46,22 @@ npm install --save-dev @types/nodemailer
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM=noreply@yourdomain.com
+SMTP_PASS=your-16-char-app-password
+SMTP_FROM=your-email@gmail.com
 ```
 
-3. Cập nhật `src/app/api/send-invitation-email/route.ts` để sử dụng Nodemailer.
+**Lưu ý quan trọng:**
+
+- ⚠️ **KHÔNG** dùng password thường của Gmail
+- ✅ Phải dùng **App Password** (16 ký tự)
+- ✅ Cần bật **2-Step Verification** trước
+- ✅ App Password không có khoảng trắng
+
+**Các SMTP provider khác:**
+
+- **Outlook/Hotmail**: `smtp-mail.outlook.com`, port `587`
+- **Yahoo**: `smtp.mail.yahoo.com`, port `587`
+- **Custom SMTP**: Chỉ cần set đúng host và port
 
 ## Option 3: Sử dụng Supabase Edge Functions
 

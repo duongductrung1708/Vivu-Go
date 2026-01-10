@@ -31,7 +31,7 @@ export interface CreateItineraryInput {
   trip_data?: Trip;
 }
 
-// Fetch all itineraries for the current user
+// Fetch all itineraries for the current user (including shared ones)
 export function useItineraries() {
   const { user } = useAuth();
 
@@ -42,10 +42,14 @@ export function useItineraries() {
         return [];
       }
 
+      // RLS policy will automatically filter to:
+      // 1. Itineraries owned by user
+      // 2. Public itineraries
+      // 3. Itineraries where user is an accepted collaborator
+      // So we don't need to filter by user_id here
       const { data, error } = await supabase
         .from("itineraries")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -141,7 +145,7 @@ export function useUpdateItinerary() {
   });
 }
 
-// Delete an itinerary
+// Delete an itinerary (only owner can delete)
 export function useDeleteItinerary() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -152,11 +156,27 @@ export function useDeleteItinerary() {
         throw new Error("User not authenticated");
       }
 
+      // Verify user is owner before deleting
+      const { data: isOwner, error: ownerError } = await supabase.rpc(
+        "user_owns_itinerary",
+        {
+          p_itinerary_id: id,
+        }
+      );
+
+      if (ownerError) {
+        throw new Error("Không thể xác minh quyền sở hữu");
+      }
+
+      if (!isOwner) {
+        throw new Error("Chỉ chủ sở hữu mới có thể xóa lịch trình");
+      }
+
+      // RLS policy will also enforce this, but we check here for better error message
       const { error } = await supabase
         .from("itineraries")
         .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
 
       if (error) {
         throw error;
@@ -168,7 +188,7 @@ export function useDeleteItinerary() {
   });
 }
 
-// Get a single itinerary by ID
+// Get a single itinerary by ID (including shared ones)
 export function useItinerary(id: string) {
   const { user } = useAuth();
 
@@ -179,11 +199,15 @@ export function useItinerary(id: string) {
         return null;
       }
 
+      // RLS policy will automatically filter to:
+      // 1. Itineraries owned by user
+      // 2. Public itineraries
+      // 3. Itineraries where user is an accepted collaborator
+      // So we don't need to filter by user_id here
       const { data, error } = await supabase
         .from("itineraries")
         .select("*")
         .eq("id", id)
-        .eq("user_id", user.id)
         .single();
 
       if (error) {

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary, useUpdateItinerary } from "@/hooks/useItineraries";
+import { useCanEditItinerary } from "@/hooks/useItinerarySharing";
 import { useTripStore } from "@/store/useTripStore";
 import { useToast } from "@/hooks/use-toast";
 import { exportItineraryToPDF } from "@/utils/pdfExport";
@@ -27,6 +28,7 @@ export default function ItineraryDetailPage() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { data: itinerary, isLoading } = useItinerary(itineraryId);
+  const { data: canEdit = false, isLoading: isLoadingPermission } = useCanEditItinerary(itineraryId);
   const updateItinerary = useUpdateItinerary();
   const { trip, setTrip, getTotalCost, getCostPerPerson } = useTripStore();
   const [showConfig, setShowConfig] = useState(false);
@@ -113,7 +115,7 @@ export default function ItineraryDetailPage() {
     }
   };
 
-  if (!itineraryId || !isMounted || authLoading || isLoading) {
+  if (!itineraryId || !isMounted || authLoading || isLoading || isLoadingPermission) {
     return <Loading />;
   }
 
@@ -218,7 +220,8 @@ export default function ItineraryDetailPage() {
               <Button
                 onClick={handleSave}
                 className="flex-1 bg-linear-to-r from-primary to-accent hover:opacity-90"
-                disabled={trip.days.length === 0 || updateItinerary.isPending}
+                disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
+                title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
               >
                 <Save className="w-4 h-4 mr-2" />
                 {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
