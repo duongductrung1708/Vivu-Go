@@ -68,21 +68,52 @@ export function useShareByToken(token: string) {
   return useQuery({
     queryKey: ["share-by-token", token],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, verify the share token exists and get share info
+      const { data: shareData, error: shareError } = await supabase
         .from("itinerary_shares")
-        .select("*, itineraries(*)")
+        .select("*")
         .eq("share_token", token)
         .eq("is_active", true)
         .single();
 
-      if (error) throw error;
+      if (shareError) throw shareError;
       
       // Check if expired
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
         throw new Error("Share link has expired");
       }
 
-      return data;
+      // Use the SECURITY DEFINER function to get itinerary (bypasses RLS)
+      const { data: itineraryData, error: itineraryError } = await supabase
+        .rpc("get_itinerary_by_share_token", { p_token: token });
+
+      if (itineraryError) throw itineraryError;
+      
+      if (!itineraryData || itineraryData.length === 0) {
+        throw new Error("Itinerary not found");
+      }
+
+      const itinerary = itineraryData[0];
+
+      // Return in the same format as before for compatibility
+      return {
+        ...shareData,
+        itineraries: {
+          id: itinerary.id,
+          user_id: itinerary.user_id,
+          title: itinerary.title,
+          description: itinerary.description,
+          start_date: itinerary.start_date,
+          end_date: itinerary.end_date,
+          total_budget: itinerary.total_budget,
+          people_count: itinerary.people_count,
+          is_public: itinerary.is_public,
+          trip_data: itinerary.trip_data,
+          created_at: itinerary.created_at,
+          updated_at: itinerary.updated_at,
+        },
+        permission: itinerary.share_permission || shareData.permission,
+      };
     },
     enabled: !!token,
   });
@@ -232,6 +263,37 @@ export function useInviteCollaborator() {
 
       if (error) {
         throw new Error(error.message || "Không tìm thấy người dùng với email này. Người dùng cần đăng ký tài khoản trước.");
+      }
+
+      // Get itinerary title for email
+      const { data: itinerary } = await supabase
+        .from("itineraries")
+        .select("title")
+        .eq("id", input.itinerary_id)
+        .single();
+
+      // Get user name for email
+      const { data: userData } = await supabase.auth.getUser();
+      const inviterName = userData?.user?.user_metadata?.full_name || userData?.user?.email || "Một người dùng";
+
+      // Send invitation email
+      try {
+        await fetch("/api/send-invitation-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: input.email,
+            itineraryId: input.itinerary_id,
+            itineraryTitle: itinerary?.title,
+            inviterName,
+            permission: input.permission,
+          }),
+        });
+      } catch (emailError) {
+        // Don't fail the invitation if email fails
+        console.error("Failed to send invitation email:", emailError);
       }
 
       return data as ItineraryCollaborator;
