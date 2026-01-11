@@ -24,6 +24,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Force dynamic rendering to prevent SSR issues with AuthProvider
 export const dynamic = "force-dynamic";
@@ -38,6 +44,7 @@ export default function TripPage() {
   const [saveTitle, setSaveTitle] = useState("");
   const [saveDescription, setSaveDescription] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
   const { getTotalCost, getCostPerPerson, trip, resetTrip } = useTripStore();
   const createItinerary = useCreateItinerary();
 
@@ -135,7 +142,9 @@ export default function TripPage() {
           className={`fixed z-50 rounded-full bg-card border border-border p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${
             isSidebarCollapsed
               ? "left-4 top-20"
-              : "left-[calc(420px+0.5rem)] top-20 md:left-[calc(420px+0.5rem)]"
+              : isMobile
+              ? "left-4 top-20"
+              : "left-[calc(420px+0.5rem)] top-20"
           }`}
           aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
         >
@@ -146,13 +155,75 @@ export default function TripPage() {
           )}
         </button>
 
-        <section
-          className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
-            isSidebarCollapsed
-              ? "w-0 md:w-0 opacity-0 pointer-events-none"
-              : "w-full md:w-[420px] opacity-100"
-          }`}
-        >
+        {/* Mobile: Use Sheet (Drawer) */}
+        {isMobile ? (
+          <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
+            <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 overflow-hidden">
+              <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
+              <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
+                <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Tổng quan ngân sách
+                      </p>
+                      <h2 className="text-base font-semibold text-card-foreground">
+                        {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          Tổng cộng
+                        </p>
+                        <p className="text-sm font-semibold text-card-foreground">
+                          {totalCost.toLocaleString("vi-VN")} đ
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {costPerPerson.toLocaleString("vi-VN")} đ / người
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfig(!showConfig)}
+                        className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        title="Chỉnh sửa cấu hình chuyến đi"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setShowSaveDialog(true)}
+                    className="w-full bg-linear-to-r from-primary to-accent hover:opacity-90"
+                    disabled={trip.days.length === 0}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Lưu lịch trình
+                  </Button>
+                </div>
+
+                {showConfig && (
+                  <div className="shrink-0 overflow-y-auto">
+                    <TripConfig />
+                  </div>
+                )}
+
+                <div className="flex-1 overflow-hidden">
+                  <Timeline />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          /* Desktop: Use regular sidebar */
+          <section
+            className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
+              isSidebarCollapsed
+                ? "w-0 opacity-0 pointer-events-none"
+                : "w-[420px] opacity-100"
+            }`}
+          >
           <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -204,7 +275,8 @@ export default function TripPage() {
           <div className="flex-1 overflow-hidden">
             <Timeline />
           </div>
-        </section>
+          </section>
+        )}
 
         <section className="h-full w-full shrink-0 md:w-auto md:flex-1">
           <MapContainer sidebarCollapsed={isSidebarCollapsed} />

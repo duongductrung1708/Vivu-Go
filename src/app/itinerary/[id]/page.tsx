@@ -9,10 +9,17 @@ import { MapContainer } from "@/components/MapContainer";
 import { Timeline } from "@/components/Timeline";
 import { TripConfig } from "@/components/TripConfig";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useIsMounted } from "@/hooks/use-is-mounted";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary, useUpdateItinerary } from "@/hooks/useItineraries";
 import { useCanEditItinerary } from "@/hooks/useItinerarySharing";
+import { useItineraryRealtime } from "@/hooks/useItineraryRealtime";
 import { useTripStore } from "@/store/useTripStore";
 import { useToast } from "@/hooks/use-toast";
 import { exportItineraryToPDF } from "@/utils/pdfExport";
@@ -33,6 +40,10 @@ export default function ItineraryDetailPage() {
   const { trip, setTrip, getTotalCost, getCostPerPerson } = useTripStore();
   const [showConfig, setShowConfig] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Subscribe to realtime changes
+  useItineraryRealtime(itineraryId);
 
   const totalCost = isMounted ? getTotalCost() : 0;
   const costPerPerson = isMounted ? getCostPerPerson() : 0;
@@ -99,6 +110,7 @@ export default function ItineraryDetailPage() {
           total_budget: trip.totalBudget,
           trip_data: trip,
         },
+        expectedVersion: itinerary?.version, // Optimistic locking
       });
 
       toast({
@@ -159,7 +171,9 @@ export default function ItineraryDetailPage() {
           className={`fixed z-50 rounded-full bg-card border border-border p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${
             isSidebarCollapsed
               ? "left-4 top-20"
-              : "left-[calc(420px+0.5rem)] top-20 md:left-[calc(420px+0.5rem)]"
+              : isMobile
+              ? "left-4 top-20"
+              : "left-[calc(420px+0.5rem)] top-20"
           }`}
           aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
         >
@@ -170,13 +184,89 @@ export default function ItineraryDetailPage() {
           )}
         </button>
 
-        <section
-          className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
-            isSidebarCollapsed
-              ? "w-0 md:w-0 opacity-0 pointer-events-none"
-              : "w-full md:w-[420px] opacity-100"
-          }`}
-        >
+        {/* Mobile: Use Sheet (Drawer) */}
+        {isMobile ? (
+          <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
+            <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 overflow-hidden">
+              <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
+              <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
+                <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Lịch trình đã lưu
+                      </p>
+                      <h2 className="text-base font-semibold text-card-foreground">
+                        {trip.name}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          Tổng cộng
+                        </p>
+                        <p className="text-sm font-semibold text-card-foreground">
+                          {totalCost.toLocaleString("vi-VN")} đ
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {costPerPerson.toLocaleString("vi-VN")} đ / người
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfig(!showConfig)}
+                        className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        title="Chỉnh sửa cấu hình chuyến đi"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => router.push("/dashboard")}
+                    >
+                      Trở lại
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      className="flex-1 bg-linear-to-r from-primary to-accent hover:opacity-90"
+                      disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
+                      title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={handleExportPdf}>
+                      <FileDown className="w-4 h-4 mr-2" />
+                      Xuất PDF
+                    </Button>
+                  </div>
+                </div>
+
+                {showConfig && (
+                  <div className="shrink-0 overflow-y-auto">
+                    <TripConfig />
+                  </div>
+                )}
+
+                <div className="flex-1 overflow-hidden">
+                  <Timeline />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          /* Desktop: Use regular sidebar */
+          <section
+            className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
+              isSidebarCollapsed
+                ? "w-0 opacity-0 pointer-events-none"
+                : "w-[420px] opacity-100"
+            }`}
+          >
           <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -242,7 +332,8 @@ export default function ItineraryDetailPage() {
           <div className="flex-1 overflow-hidden">
             <Timeline />
           </div>
-        </section>
+          </section>
+        )}
 
         <section className="h-full w-full shrink-0 md:w-auto md:flex-1">
           <MapContainer sidebarCollapsed={isSidebarCollapsed} />

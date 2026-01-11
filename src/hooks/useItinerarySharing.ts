@@ -27,6 +27,8 @@ export interface ItineraryCollaborator {
   updated_at: string;
   user_email?: string; // Joined from auth.users
   user_name?: string; // Joined from auth.users
+  inviter_email?: string; // Joined from auth.users for inviter
+  inviter_name?: string; // Joined from auth.users for inviter
 }
 
 export interface CreateShareInput {
@@ -39,6 +41,47 @@ export interface InviteCollaboratorInput {
   itinerary_id: string;
   email: string;
   permission: "read" | "edit";
+}
+
+interface PendingInvitationRPCResult {
+  id: string;
+  itinerary_id: string;
+  user_id: string;
+  invited_by: string;
+  permission: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  inviter_email: string;
+  inviter_name: string;
+  itinerary_title: string;
+  itinerary_description: string;
+  itinerary_start_date: string | null;
+  itinerary_end_date: string | null;
+  itinerary_total_budget: number;
+  itinerary_people_count: number;
+  itinerary_trip_data: unknown;
+}
+
+interface PendingInvitationFallback {
+  id: string;
+  itinerary_id: string;
+  user_id: string;
+  invited_by: string;
+  permission: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  itinerary: {
+    id: string;
+    title: string;
+    description: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    total_budget: number;
+    people_count: number;
+    trip_data: unknown;
+  };
 }
 
 // Get all shares for an itinerary
@@ -422,6 +465,10 @@ export function useUpdateCollaborationStatus() {
       queryClient.invalidateQueries({
         queryKey: ["itineraries"],
       });
+      // Invalidate pending invitations so the list updates immediately
+      queryClient.invalidateQueries({
+        queryKey: ["pending-invitations"],
+      });
     },
   });
 }
@@ -461,6 +508,45 @@ export function usePendingInvitations() {
     queryFn: async () => {
       if (!user) return [];
 
+      // Try RPC function first (if migration has been run)
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_pending_invitations_with_inviter"
+      );
+
+      if (!rpcError && rpcData) {
+        // Transform RPC data to match expected format
+        const typedRpcData = rpcData as PendingInvitationRPCResult[];
+        return (typedRpcData || []).map((item) => ({
+          id: item.id,
+          itinerary_id: item.itinerary_id,
+          user_id: item.user_id,
+          invited_by: item.invited_by,
+          permission: item.permission,
+          status: item.status,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          inviter_email: item.inviter_email,
+          inviter_name: item.inviter_name,
+          itinerary: {
+            id: item.itinerary_id,
+            title: item.itinerary_title,
+            description: item.itinerary_description,
+            start_date: item.itinerary_start_date,
+            end_date: item.itinerary_end_date,
+            total_budget: item.itinerary_total_budget,
+            people_count: item.itinerary_people_count,
+            trip_data: item.itinerary_trip_data,
+          },
+        }));
+      }
+
+      // Fallback to original query if RPC function doesn't exist
+      if (rpcError && rpcError.code === "42883") {
+        console.warn(
+          "RPC function 'get_pending_invitations_with_inviter' not found. Please run migration 007_add_get_pending_invitations_with_inviter.sql. Using fallback query."
+        );
+      }
+
       const { data, error } = await supabase
         .from("itinerary_collaborators")
         .select(
@@ -483,7 +569,12 @@ export function usePendingInvitations() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      const typedData = data as PendingInvitationFallback[];
+      return (typedData || []).map((item) => ({
+        ...item,
+        inviter_email: undefined,
+        inviter_name: undefined,
+      }));
     },
     enabled: !!user,
   });

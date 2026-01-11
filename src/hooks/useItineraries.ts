@@ -18,6 +18,7 @@ export interface Itinerary {
   trip_data: Trip;
   created_at: string;
   updated_at: string;
+  version?: number; // For optimistic locking
 }
 
 export interface CreateItineraryInput {
@@ -108,7 +109,7 @@ export function useCreateItinerary() {
   });
 }
 
-// Update an existing itinerary
+// Update an existing itinerary with optimistic locking
 export function useUpdateItinerary() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -117,24 +118,50 @@ export function useUpdateItinerary() {
     mutationFn: async ({
       id,
       updates,
+      expectedVersion,
     }: {
       id: string;
       updates: Partial<CreateItineraryInput & { trip_data?: Trip }>;
+      expectedVersion?: number; // For optimistic locking
     }) => {
       if (!user) {
         throw new Error("User not authenticated");
       }
 
+      // If version is provided, check current version first (optimistic locking)
+      if (expectedVersion !== undefined) {
+        const { data: currentData, error: fetchError } = await supabase
+          .from("itineraries")
+          .select("version")
+          .eq("id", id)
+          .single();
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        // Check for version conflict
+        if (currentData && currentData.version !== expectedVersion) {
+          throw new Error(
+            "Lịch trình đã được cập nhật bởi người khác. Vui lòng làm mới trang và thử lại."
+          );
+        }
+      }
+
+      // Perform the update
       const { data, error } = await supabase
         .from("itineraries")
         .update(updates)
         .eq("id", id)
-        .eq("user_id", user.id)
         .select()
         .single();
 
       if (error) {
         throw error;
+      }
+
+      if (!data) {
+        throw new Error("Không thể cập nhật lịch trình.");
       }
 
       return data as Itinerary;

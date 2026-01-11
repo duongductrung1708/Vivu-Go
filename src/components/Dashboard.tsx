@@ -189,6 +189,11 @@ export default function Dashboard() {
             </h3>
             <div className="space-y-3">
               {pendingInvitations.map((invitation) => {
+                const invitationWithInviter =
+                  invitation as typeof invitation & {
+                    inviter_name?: string;
+                    inviter_email?: string;
+                  };
                 const itinerary = invitation.itinerary as {
                   id?: string;
                   title?: string;
@@ -230,6 +235,31 @@ export default function Dashboard() {
                                 {itinerary.description}
                               </p>
                             )}
+                            {/* Inviter info */}
+                            {invitationWithInviter.inviter_name ||
+                            invitationWithInviter.inviter_email ? (
+                              <div className="mt-2 text-sm text-muted-foreground">
+                                <span className="font-medium">
+                                  Được mời bởi:{" "}
+                                </span>
+                                <span>
+                                  {invitationWithInviter.inviter_name &&
+                                  invitationWithInviter.inviter_name !==
+                                    "Unknown"
+                                    ? invitationWithInviter.inviter_name
+                                    : invitationWithInviter.inviter_email ||
+                                      "Người dùng"}
+                                </span>
+                                {invitationWithInviter.inviter_email &&
+                                  invitationWithInviter.inviter_name &&
+                                  invitationWithInviter.inviter_name !==
+                                    "Unknown" && (
+                                    <span className="text-xs ml-1">
+                                      ({invitationWithInviter.inviter_email})
+                                    </span>
+                                  )}
+                              </div>
+                            ) : null}
                           </div>
 
                           {/* Stats */}

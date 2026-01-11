@@ -16,6 +16,9 @@ import {
   Box,
   Map as MapIcon,
   Crosshair,
+  Sun,
+  Moon,
+  Clock,
 } from "lucide-react";
 import { useTripStore } from "@/store/useTripStore";
 import { useGeolocation } from "@/hooks/use-geolocation";
@@ -72,6 +75,23 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
   } | null>(null);
   const customLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mapTheme, setMapTheme] = useState<"light" | "dark" | "auto">(() => {
+    // Load from localStorage if available
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("mapTheme");
+      if (saved === "light" || saved === "dark" || saved === "auto") {
+        return saved;
+      }
+    }
+    return "auto";
+  });
+
+  // Save theme preference to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("mapTheme", mapTheme);
+    }
+  }, [mapTheme]);
   const { position, error: geoError } = useGeolocation(useMyLocation);
   const userLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const routeCacheRef = useRef<Map<string, RouteCache>>(new Map());
@@ -109,25 +129,35 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
     return "night";
   }, [currentTime]);
 
-  // Get appropriate map style based on time of day
+  // Get appropriate map style based on theme preference
   const mapStyle = useMemo(() => {
-    switch (timeOfDay) {
-      case "dawn":
-        // Light style with warm tones for dawn
-        return DEFAULT_MAPBOX_STYLE;
-      case "day":
-        // Bright light style for day
-        return DEFAULT_MAPBOX_STYLE;
-      case "dusk":
-        // Transition to darker style for dusk
-        return "mapbox://styles/mapbox/dark-v11";
-      case "night":
-        // Dark style for night
-        return "mapbox://styles/mapbox/dark-v11";
-      default:
-        return DEFAULT_MAPBOX_STYLE;
+    // If theme is auto, use time-based logic
+    if (mapTheme === "auto") {
+      switch (timeOfDay) {
+        case "dawn":
+          return DEFAULT_MAPBOX_STYLE;
+        case "day":
+          return DEFAULT_MAPBOX_STYLE;
+        case "dusk":
+          return "mapbox://styles/mapbox/dark-v11";
+        case "night":
+          return "mapbox://styles/mapbox/dark-v11";
+        default:
+          return DEFAULT_MAPBOX_STYLE;
+      }
     }
-  }, [timeOfDay]);
+    
+    // Manual theme selection
+    if (mapTheme === "light") {
+      return DEFAULT_MAPBOX_STYLE;
+    }
+    
+    if (mapTheme === "dark") {
+      return "mapbox://styles/mapbox/dark-v11";
+    }
+    
+    return DEFAULT_MAPBOX_STYLE;
+  }, [mapTheme, timeOfDay]);
 
   // Update time every minute
   useEffect(() => {
@@ -366,25 +396,20 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
     }
 
     try {
-      // Determine initial style based on current time
-      const hour = new Date().getHours();
+      // Determine initial style based on theme preference
       let initialStyle = DEFAULT_MAPBOX_STYLE;
-
-      // Dawn: 5:00 - 7:00
-      if (hour >= 5 && hour < 7) {
-        initialStyle = DEFAULT_MAPBOX_STYLE; // dawn
-      }
-      // Day: 7:00 - 18:00
-      else if (hour >= 7 && hour < 18) {
-        initialStyle = DEFAULT_MAPBOX_STYLE; // day
-      }
-      // Dusk: 18:00 - 20:00
-      else if (hour >= 18 && hour < 20) {
-        initialStyle = "mapbox://styles/mapbox/dark-v11"; // dusk
-      }
-      // Night: 20:00 - 5:00
-      else {
-        initialStyle = "mapbox://styles/mapbox/dark-v11"; // night
+      if (mapTheme === "dark") {
+        initialStyle = "mapbox://styles/mapbox/dark-v11";
+      } else if (mapTheme === "auto") {
+        // Use time-based logic for auto mode
+        const hour = new Date().getHours();
+        if (hour >= 18 || hour < 5) {
+          initialStyle = "mapbox://styles/mapbox/dark-v11"; // dusk/night
+        } else {
+          initialStyle = DEFAULT_MAPBOX_STYLE; // dawn/day
+        }
+      } else {
+        initialStyle = DEFAULT_MAPBOX_STYLE; // light
       }
 
       const map = new mapboxgl.Map({
@@ -475,7 +500,7 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
     } catch {
       // Handle initialization errors silently
     }
-  }, []);
+  }, [mapTheme]);
 
   // Handle map click to set location for selected place
   useEffect(() => {
@@ -1190,6 +1215,46 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
                 )}
                 <span>{is3DMode ? "2D" : "3D"}</span>
               </button>
+
+              {/* Map Theme Selector */}
+              <div className="flex items-center gap-1 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setMapTheme("light")}
+                  className={`px-3 py-2 transition ${
+                    mapTheme === "light"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                  title="Giao diện sáng"
+                >
+                  <Sun className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapTheme("dark")}
+                  className={`px-3 py-2 transition ${
+                    mapTheme === "dark"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                  title="Giao diện tối"
+                >
+                  <Moon className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapTheme("auto")}
+                  className={`px-3 py-2 transition ${
+                    mapTheme === "auto"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                  title="Tự động theo thời gian"
+                >
+                  <Clock className="h-4 w-4" />
+                </button>
+              </div>
 
               <div className="flex items-center gap-1 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
                 <button

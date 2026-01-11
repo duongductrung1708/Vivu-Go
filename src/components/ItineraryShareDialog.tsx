@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, cloneElement, isValidElement } from "react";
-import { Copy, Link2, Mail, X } from "lucide-react";
+import { Copy, Link2, Mail, X, Clock } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +63,9 @@ export function ItineraryShareDialog({
   const [shareToDelete, setShareToDelete] = useState<string | null>(null);
   const [collaboratorToRemove, setCollaboratorToRemove] = useState<
     string | null
+  >(null);
+  const [collaboratorStatus, setCollaboratorStatus] = useState<
+    "pending" | "accepted" | "declined" | null
   >(null);
   const { toast } = useToast();
 
@@ -187,8 +190,12 @@ export function ItineraryShareDialog({
     }
   };
 
-  const handleRemoveCollaboratorClick = (collaborationId: string) => {
+  const handleRemoveCollaboratorClick = (
+    collaborationId: string,
+    status: "pending" | "accepted" | "declined"
+  ) => {
     setCollaboratorToRemove(collaborationId);
+    setCollaboratorStatus(status);
     setRemoveCollaboratorDialogOpen(true);
   };
 
@@ -202,10 +209,14 @@ export function ItineraryShareDialog({
       });
       toast({
         title: "Đã xóa",
-        description: "Đã xóa người cộng tác.",
+        description:
+          collaboratorStatus === "pending"
+            ? "Đã hủy lời mời cộng tác."
+            : "Đã xóa người cộng tác.",
       });
       setRemoveCollaboratorDialogOpen(false);
       setCollaboratorToRemove(null);
+      setCollaboratorStatus(null);
     } catch {
       toast({
         variant: "destructive",
@@ -468,25 +479,67 @@ export function ItineraryShareDialog({
                                 {collab.user_email}
                               </div>
                             )}
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Quyền:{" "}
-                              {collab.permission === "edit"
-                                ? "Chỉnh sửa"
-                                : "Đọc"}{" "}
-                              • Trạng thái:{" "}
-                              {collab.status === "accepted"
-                                ? "Đã chấp nhận"
-                                : collab.status === "declined"
-                                ? "Đã từ chối"
-                                : "Đang chờ"}
+                            <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium">
+                                  {collab.permission === "edit"
+                                    ? "Chỉnh sửa"
+                                    : "Đọc"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    collab.status === "accepted"
+                                      ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                      : collab.status === "declined"
+                                      ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                                      : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                                  }`}
+                                >
+                                  {collab.status === "accepted"
+                                    ? "Đã chấp nhận"
+                                    : collab.status === "declined"
+                                    ? "Đã từ chối"
+                                    : "Đang chờ"}
+                                </span>
+                              </div>
+                              {collab.created_at && (
+                                <div className="flex items-center gap-1.5 text-xs">
+                                  <Clock className="w-3 h-3" />
+                                  <span>
+                                    {collab.status === "pending"
+                                      ? "Mời ngày"
+                                      : collab.status === "accepted"
+                                      ? "Chấp nhận ngày"
+                                      : "Từ chối ngày"}{" "}
+                                    {format(
+                                      new Date(collab.created_at),
+                                      "dd/MM/yyyy",
+                                      {
+                                        locale: vi,
+                                      }
+                                    )}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          {collab.status === "accepted" && (
+                          {(collab.status === "accepted" ||
+                            collab.status === "pending") && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                handleRemoveCollaboratorClick(collab.id)
+                                handleRemoveCollaboratorClick(
+                                  collab.id,
+                                  collab.status
+                                )
+                              }
+                              title={
+                                collab.status === "pending"
+                                  ? "Hủy lời mời"
+                                  : "Xóa người cộng tác"
                               }
                             >
                               <X className="w-4 h-4" />
@@ -541,21 +594,31 @@ export function ItineraryShareDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa người cộng tác</AlertDialogTitle>
+            <AlertDialogTitle>
+              {collaboratorStatus === "pending"
+                ? "Xác nhận hủy lời mời"
+                : "Xác nhận xóa người cộng tác"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa người cộng tác này? Họ sẽ không còn
-              quyền truy cập vào lịch trình này.
+              {collaboratorStatus === "pending"
+                ? "Bạn có chắc chắn muốn hủy lời mời cộng tác này? Người dùng sẽ không nhận được lời mời nữa."
+                : "Bạn có chắc chắn muốn xóa người cộng tác này? Họ sẽ không còn quyền truy cập vào lịch trình này."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCollaboratorToRemove(null)}>
+            <AlertDialogCancel
+              onClick={() => {
+                setCollaboratorToRemove(null);
+                setCollaboratorStatus(null);
+              }}
+            >
               Hủy
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveCollaboratorConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa
+              {collaboratorStatus === "pending" ? "Hủy lời mời" : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
