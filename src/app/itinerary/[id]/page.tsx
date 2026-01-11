@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Settings, Save, FileDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/Loading";
 import { MapContainer } from "@/components/MapContainer";
 import { Timeline } from "@/components/Timeline";
+import { PackingList } from "@/components/PackingList";
 import { TripConfig } from "@/components/TripConfig";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
   SheetContent,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +25,8 @@ import { useItineraryRealtime } from "@/hooks/useItineraryRealtime";
 import { useTripStore } from "@/store/useTripStore";
 import { useToast } from "@/hooks/use-toast";
 import { exportItineraryToPDF } from "@/utils/pdfExport";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Force dynamic rendering to prevent SSR issues with AuthProvider
 export const dynamic = "force-dynamic";
@@ -40,13 +44,92 @@ export default function ItineraryDetailPage() {
   const { trip, setTrip, getTotalCost, getCostPerPerson } = useTripStore();
   const [showConfig, setShowConfig] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState("timeline");
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   
-  // Subscribe to realtime changes
-  useItineraryRealtime(itineraryId);
+  // Subscribe to realtime changes and sync with store
+  const { isApplyingRemoteChange, markLocalUpdate } = useItineraryRealtime(itineraryId, setTrip);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedTripRef = useRef<string>("");
 
   const totalCost = isMounted ? getTotalCost() : 0;
   const costPerPerson = isMounted ? getCostPerPerson() : 0;
+
+  // Auto-save function with debounce
+  const autoSave = useCallback(async () => {
+    if (!user || !itineraryId || !canEdit || isApplyingRemoteChange) {
+      return;
+    }
+
+    // Serialize trip to compare
+    const tripString = JSON.stringify(trip);
+    if (tripString === lastSavedTripRef.current) {
+      return; // No changes
+    }
+
+    try {
+      // Get latest itinerary data from cache (updated by realtime)
+      const latestItinerary = queryClient.getQueryData<typeof itinerary>([
+        "itinerary",
+        itineraryId,
+      ]);
+
+      // For auto-save, skip version check to avoid conflicts during collaboration
+      // Realtime will handle syncing changes from others
+      await updateItinerary.mutateAsync({
+        id: itineraryId,
+        updates: {
+          title: trip.name,
+          start_date: trip.startDate,
+          end_date: trip.endDate,
+          people_count: trip.peopleCount,
+          total_budget: trip.totalBudget,
+          trip_data: trip,
+        },
+        // Don't use version check for auto-save - let database handle it
+        // Version check is only for manual save to inform user of conflicts
+        expectedVersion: undefined,
+      });
+      
+      lastSavedTripRef.current = tripString;
+      // Mark this as our local update to avoid syncing it back
+      markLocalUpdate(trip);
+    } catch (error: any) {
+      // Silently fail for auto-save (user can manually save if needed)
+      // Only log if it's not a version conflict (which is expected during collaboration)
+      if (error?.message?.includes("Lịch trình đã được cập nhật")) {
+        // Version conflict - this is expected during collaboration, realtime will sync
+        // Don't log as error, just skip this auto-save
+        return;
+      } else {
+        console.error("Auto-save failed:", error);
+      }
+    }
+  }, [trip, itineraryId, user, canEdit, updateItinerary, isApplyingRemoteChange, queryClient, itinerary]);
+
+  // Auto-save when trip changes (debounced)
+  useEffect(() => {
+    if (!user || !itineraryId || !canEdit || isApplyingRemoteChange) {
+      return;
+    }
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (1 second debounce)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [trip, user, itineraryId, canEdit, autoSave, isApplyingRemoteChange]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -56,8 +139,8 @@ export default function ItineraryDetailPage() {
 
   // Hydrate trip data from the saved itinerary (no localStorage)
   useEffect(() => {
-    if (itinerary?.trip_data) {
-      setTrip({
+    if (itinerary?.trip_data && !isApplyingRemoteChange) {
+      const newTrip = {
         ...itinerary.trip_data,
         name: itinerary.title || itinerary.trip_data.name,
         startDate: itinerary.start_date || itinerary.trip_data.startDate,
@@ -66,9 +149,12 @@ export default function ItineraryDetailPage() {
           itinerary.people_count ?? itinerary.trip_data.peopleCount,
         totalBudget:
           itinerary.total_budget ?? itinerary.trip_data.totalBudget,
-      });
+      };
+      setTrip(newTrip);
+      // Update last saved reference
+      lastSavedTripRef.current = JSON.stringify(newTrip);
     }
-  }, [itinerary, setTrip]);
+  }, [itinerary, setTrip, isApplyingRemoteChange]);
 
   const handleSave = async () => {
     if (!user) {
@@ -252,8 +338,23 @@ export default function ItineraryDetailPage() {
                   </div>
                 )}
 
-                <div className="flex-1 overflow-hidden">
-                  <Timeline />
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+                    <TabsList className="grid w-full grid-cols-2 mb-2">
+                      <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
+                      <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="timeline" className="flex-1 overflow-hidden mt-0">
+                      <div className="h-full overflow-y-auto">
+                        <Timeline />
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="packing" className="flex-1 overflow-hidden mt-0">
+                      <div className="h-full overflow-y-auto">
+                        <PackingList itineraryId={itineraryId} />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               </div>
             </SheetContent>
@@ -329,8 +430,23 @@ export default function ItineraryDetailPage() {
             </div>
           )}
 
-          <div className="flex-1 overflow-hidden">
-            <Timeline />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="grid w-full grid-cols-2 mb-2">
+                <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
+                <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
+              </TabsList>
+              <TabsContent value="timeline" className="flex-1 overflow-hidden mt-0">
+                <div className="h-full overflow-y-auto">
+                  <Timeline />
+                </div>
+              </TabsContent>
+              <TabsContent value="packing" className="flex-1 overflow-hidden mt-0">
+                <div className="h-full overflow-y-auto">
+                  <PackingList itineraryId={itineraryId} />
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
           </section>
         )}

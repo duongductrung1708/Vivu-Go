@@ -1,8 +1,11 @@
--- Add policy to allow viewing itineraries through share tokens
--- This fixes the issue where shared links don't work for other users
+-- Update get_itinerary_by_share_token function to return share data
+-- This allows the frontend to get all necessary data without querying itinerary_shares directly
+-- which may be blocked by RLS policies
 
--- Create a function to get itinerary by share token (bypasses RLS)
--- This function verifies the token and returns the itinerary if valid
+-- Drop the existing function first because we're changing the return type
+DROP FUNCTION IF EXISTS public.get_itinerary_by_share_token(TEXT);
+
+-- Create the updated function with new return type
 CREATE OR REPLACE FUNCTION public.get_itinerary_by_share_token(p_token TEXT)
 RETURNS TABLE (
   id UUID,
@@ -31,6 +34,7 @@ DECLARE
   v_share RECORD;
 BEGIN
   -- Verify the share token exists and is active
+  -- This query bypasses RLS because we're in a SECURITY DEFINER function
   SELECT * INTO v_share
   FROM public.itinerary_shares
   WHERE share_token = p_token
@@ -65,6 +69,6 @@ BEGIN
 END;
 $$;
 
--- Grant execute permissions
+-- Grant execute permissions (in case they were not granted before)
 GRANT EXECUTE ON FUNCTION public.get_itinerary_by_share_token TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_itinerary_by_share_token TO anon;

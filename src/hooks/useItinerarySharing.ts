@@ -111,53 +111,47 @@ export function useShareByToken(token: string) {
   return useQuery({
     queryKey: ["share-by-token", token],
     queryFn: async () => {
-      // First, verify the share token exists and get share info
-      const { data: shareData, error: shareError } = await supabase
-        .from("itinerary_shares")
-        .select("*")
-        .eq("share_token", token)
-        .eq("is_active", true)
-        .single();
-
-      if (shareError) throw shareError;
-
-      // Check if expired
-      if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
-        throw new Error("Share link has expired");
-      }
-
-      // Use the SECURITY DEFINER function to get itinerary (bypasses RLS)
-      const { data: itineraryData, error: itineraryError } = await supabase.rpc(
+      // Use the SECURITY DEFINER function to get itinerary and share info (bypasses RLS)
+      // This function verifies the token, checks expiration, and returns both share and itinerary data
+      const { data: resultData, error: rpcError } = await supabase.rpc(
         "get_itinerary_by_share_token",
         { p_token: token }
       );
 
-      if (itineraryError) throw itineraryError;
+      if (rpcError) throw rpcError;
 
-      if (!itineraryData || itineraryData.length === 0) {
-        throw new Error("Itinerary not found");
+      if (!resultData || resultData.length === 0) {
+        throw new Error("Share link không hợp lệ hoặc đã hết hạn");
       }
 
-      const itinerary = itineraryData[0];
+      const result = resultData[0];
 
       // Return in the same format as before for compatibility
       return {
-        ...shareData,
+        id: result.share_id,
+        itinerary_id: result.id,
+        created_by: result.share_created_by,
+        share_token: token,
+        permission: result.share_permission || "read",
+        expires_at: result.share_expires_at,
+        is_active: true,
+        created_at: result.share_created_at,
+        updated_at: result.share_created_at,
         itineraries: {
-          id: itinerary.id,
-          user_id: itinerary.user_id,
-          title: itinerary.title,
-          description: itinerary.description,
-          start_date: itinerary.start_date,
-          end_date: itinerary.end_date,
-          total_budget: itinerary.total_budget,
-          people_count: itinerary.people_count,
-          is_public: itinerary.is_public,
-          trip_data: itinerary.trip_data,
-          created_at: itinerary.created_at,
-          updated_at: itinerary.updated_at,
+          id: result.id,
+          user_id: result.user_id,
+          title: result.title,
+          description: result.description,
+          start_date: result.start_date,
+          end_date: result.end_date,
+          total_budget: result.total_budget,
+          people_count: result.people_count,
+          is_public: result.is_public,
+          trip_data: result.trip_data,
+          created_at: result.created_at,
+          updated_at: result.updated_at,
         },
-        permission: itinerary.share_permission || shareData.permission,
+        permission: result.share_permission || "read",
       };
     },
     enabled: !!token,

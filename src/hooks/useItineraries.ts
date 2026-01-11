@@ -142,6 +142,8 @@ export function useUpdateItinerary() {
 
         // Check for version conflict
         if (currentData && currentData.version !== expectedVersion) {
+          // For auto-save, we can skip version check and let realtime handle sync
+          // But for manual save, we should inform the user
           throw new Error(
             "Lịch trình đã được cập nhật bởi người khác. Vui lòng làm mới trang và thử lại."
           );
