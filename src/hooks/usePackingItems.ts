@@ -10,8 +10,8 @@ export interface PackingItem {
   item_name: string;
   category?: string;
   is_checked: boolean;
-  checked_by?: string;
-  checked_at?: string;
+  checked_by?: string | null;
+  checked_at?: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -118,7 +118,6 @@ export function useUpdatePackingItem() {
   return useMutation({
     mutationFn: async ({
       id,
-      itineraryId,
       updates,
     }: {
       id: string;
@@ -130,7 +129,7 @@ export function useUpdatePackingItem() {
       }
 
       // If toggling checked status, update checked_by and checked_at
-      const updateData: any = { ...updates };
+      const updateData: Partial<PackingItem> = { ...updates };
       if (updates.is_checked !== undefined) {
         if (updates.is_checked) {
           updateData.checked_by = user.id;
@@ -169,7 +168,6 @@ export function useDeletePackingItem() {
   return useMutation({
     mutationFn: async ({
       id,
-      itineraryId,
     }: {
       id: string;
       itineraryId: string;

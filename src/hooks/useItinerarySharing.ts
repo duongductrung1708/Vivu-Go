@@ -151,7 +151,6 @@ export function useShareByToken(token: string) {
           created_at: result.created_at,
           updated_at: result.updated_at,
         },
-        permission: result.share_permission || "read",
       };
     },
     enabled: !!token,
