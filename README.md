@@ -75,7 +75,6 @@ Tạo file `.env.local` trong thư mục gốc:
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 NEXT_PUBLIC_MAPBOX_STYLE=mapbox://styles/mapbox/streets-v12
 GEMINI_API_KEY=your_gemini_api_key_here
-OPENWEATHER_API_KEY=your_openweather_api_key_here
 ```
 
 **Để lấy Mapbox token:**
@@ -93,14 +92,7 @@ OPENWEATHER_API_KEY=your_openweather_api_key_here
 
 > **Lưu ý:** Tính năng chat AI sẽ không hoạt động nếu không có `GEMINI_API_KEY`. Ứng dụng vẫn hoạt động bình thường nhưng chat AI sẽ hiển thị lỗi.
 
-**Để lấy OpenWeatherMap API key:**
-
-1. Truy cập [OpenWeatherMap](https://openweathermap.org/api)
-2. Đăng ký tài khoản miễn phí
-3. Vào [API Keys](https://home.openweathermap.org/api_keys) để tạo key
-4. Copy API key vào file `.env.local` với tên `OPENWEATHER_API_KEY`
-
-> **Lưu ý:** Tính năng thời tiết sẽ không hiển thị nếu không có `OPENWEATHER_API_KEY`. Widget thời tiết sẽ tự động ẩn nếu không có API key.
+> **Lưu ý:** Tính năng thời tiết sử dụng [Open-Meteo API](https://open-meteo.com/) - miễn phí và không cần API key. Widget thời tiết sẽ tự động hoạt động mà không cần cấu hình thêm.
 
 4. **Chạy development server**
 

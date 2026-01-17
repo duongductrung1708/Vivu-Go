@@ -30,7 +30,7 @@ Next.js là framework React chính của dự án, cung cấp:
 
 - `/api/chat` - Xử lý chat với Google Gemini AI
 - `/api/send-invitation-email` - Gửi email mời cộng tác
-- `/api/weather` - Lấy dữ liệu thời tiết từ OpenWeatherMap
+- `/api/weather` - Lấy dữ liệu thời tiết từ Open-Meteo (miễn phí, không cần API key)
 
 **3. Server-side rendering:**
 

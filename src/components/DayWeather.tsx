@@ -45,8 +45,8 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
       (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    // Nếu ngày vượt quá 5 ngày tới thì không gọi API luôn
-    if (daysFromToday > 5 || daysFromToday < 0) {
+    // Open-Meteo hỗ trợ dự báo đến 16 ngày, nếu vượt quá thì không gọi API
+    if (daysFromToday > 16 || daysFromToday < 0) {
       setIsLoading(false);
       setWeather(null);
       return;
@@ -81,7 +81,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
         if (dayWeather) {
           setWeather(dayWeather);
         } else {
-          // Kiểm tra xem ngày có quá xa trong tương lai không (vượt quá 5 ngày)
+          // Kiểm tra xem ngày có quá xa trong tương lai không (vượt quá 16 ngày)
           const targetDate = new Date(normalizedDate);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -90,7 +90,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
             (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
           );
 
-          if (daysFromToday <= 5) {
+          if (daysFromToday <= 16) {
             // Thử tìm ngày gần nhất nếu không tìm thấy khớp chính xác (trong phạm vi dự báo)
             const closestWeather = data.forecast.reduce(
               (closest: ForecastDay | null, day: ForecastDay) => {
@@ -149,8 +149,8 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
       (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysFromToday > 5) {
-      // Ngày vượt quá phạm vi dự báo 5 ngày, không hiển thị gì
+    if (daysFromToday > 16) {
+      // Ngày vượt quá phạm vi dự báo 16 ngày, không hiển thị gì
       return null;
     }
 

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { optimizePlacesOrder } from "@/utils/routeOptimization";
 
 export type TimeSlot = "morning" | "noon" | "afternoon" | "evening";
 
@@ -49,6 +50,7 @@ type TripStore = {
   updatePlace: (dayId: string, placeId: string, updates: Partial<Place>) => void;
   removePlace: (dayId: string, placeId: string) => void;
   reorderPlaces: (dayId: string, fromIndex: number, toIndex: number) => void;
+  optimizeRoute: (dayId: string, profile?: "driving" | "walking" | "cycling") => Promise<{ totalDistance: number } | null>;
   getDayById: (dayId: string) => Day | undefined;
   getSelectedDay: () => Day | undefined;
   getDayCost: (dayId: string) => number;
@@ -204,6 +206,32 @@ export const useTripStore = create<TripStore>()(
             },
           };
         }),
+
+      optimizeRoute: async (dayId, profile = "driving") => {
+        const day = get().trip.days.find((tripDay) => tripDay.id === dayId);
+        if (!day || day.places.length < 2) {
+          return null;
+        }
+
+        const result = await optimizePlacesOrder(day.places, profile);
+        if (!result) {
+          return null;
+        }
+
+        // Update places order
+        set((state) => ({
+          trip: {
+            ...state.trip,
+            days: state.trip.days.map((tripDay) =>
+              tripDay.id === dayId
+                ? { ...tripDay, places: result.optimizedPlaces }
+                : tripDay,
+            ),
+          },
+        }));
+
+        return { totalDistance: result.totalDistance };
+      },
 
       getDayById: (dayId) => get().trip.days.find((day) => day.id === dayId),
 

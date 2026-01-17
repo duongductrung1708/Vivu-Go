@@ -1,15 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
+// Helper function to map WMO weather codes to descriptions (Vietnamese)
+function mapWeatherCodeToDescription(code: number): string {
+  const codes: Record<number, string> = {
+    0: "Trời quang",
+    1: "Chủ yếu quang",
+    2: "Có mây một phần",
+    3: "Có mây",
+    45: "Sương mù",
+    48: "Sương mù đóng băng",
+    51: "Mưa phùn nhẹ",
+    53: "Mưa phùn vừa",
+    55: "Mưa phùn dày",
+    56: "Mưa phùn đóng băng nhẹ",
+    57: "Mưa phùn đóng băng dày",
+    61: "Mưa nhẹ",
+    63: "Mưa vừa",
+    65: "Mưa nặng",
+    66: "Mưa đóng băng nhẹ",
+    67: "Mưa đóng băng nặng",
+    71: "Tuyết nhẹ",
+    73: "Tuyết vừa",
+    75: "Tuyết nặng",
+    77: "Hạt tuyết",
+    80: "Mưa rào nhẹ",
+    81: "Mưa rào vừa",
+    82: "Mưa rào nặng",
+    85: "Mưa tuyết nhẹ",
+    86: "Mưa tuyết nặng",
+    95: "Dông",
+    96: "Dông có mưa đá",
+    99: "Dông có mưa đá nặng",
+  };
+  return codes[code] || "Không xác định";
+}
+
+// Helper function to map WMO weather codes to OpenWeatherMap icon format (for compatibility)
+function mapWeatherCodeToIcon(code: number): string {
+  // Map WMO codes to OpenWeatherMap icon format
+  if (code === 0) return "01d"; // Clear sky
+  if (code === 1) return "02d"; // Mainly clear
+  if (code === 2) return "02d"; // Partly cloudy
+  if (code === 3) return "03d"; // Overcast
+  if (code === 45 || code === 48) return "50d"; // Fog
+  if (code >= 51 && code <= 57) return "09d"; // Drizzle
+  if (code >= 61 && code <= 67) return "10d"; // Rain
+  if (code >= 71 && code <= 77) return "13d"; // Snow
+  if (code >= 80 && code <= 82) return "09d"; // Rain showers
+  if (code >= 85 && code <= 86) return "13d"; // Snow showers
+  if (code >= 95 && code <= 99) return "11d"; // Thunderstorm
+  return "01d"; // Default
+}
 
 export async function GET(request: NextRequest) {
-  if (!OPENWEATHER_API_KEY) {
-    return NextResponse.json(
-      { error: "OpenWeather API key is not configured" },
-      { status: 500 }
-    );
-  }
-
   try {
     const searchParams = request.nextUrl.searchParams;
     const lat = searchParams.get("lat");
@@ -23,39 +66,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch weather from OpenWeatherMap API
-    const endpoint = type === "forecast" 
-      ? "forecast" 
-      : "weather";
-    const url = `https://api.openweathermap.org/data/2.5/${endpoint}?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=vi`;
-
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("OpenWeather API error:", errorData);
-      
-      // Provide more specific error messages
-      let errorMessage = "Failed to fetch weather data";
-      if (response.status === 401) {
-        errorMessage = "Invalid OpenWeather API key. Please check your OPENWEATHER_API_KEY in .env.local";
-      } else if (response.status === 404) {
-        errorMessage = "Location not found";
-      } else if (errorData.message) {
-        errorMessage = errorData.message;
-      }
-      
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-
-    // Handle forecast data
+    // Fetch weather from Open-Meteo API (free, no API key required)
+    // Open-Meteo supports up to 16 days of forecast for free tier
     if (type === "forecast") {
-      if (!data.list || !Array.isArray(data.list)) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&timezone=Asia/Ho_Chi_Minh&forecast_days=16`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.error("Open-Meteo API error:", response.status, response.statusText);
+        return NextResponse.json(
+          { error: "Failed to fetch weather forecast data" },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.daily || !data.daily.time || !Array.isArray(data.daily.time)) {
         console.error("Invalid forecast data structure:", data);
         return NextResponse.json(
           { error: "Invalid forecast data received" },
@@ -63,85 +91,73 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Type for forecast list item
-      type ForecastItem = {
-        dt: number;
-        main: {
-          temp: number;
-          feels_like: number;
-          temp_min: number;
-          temp_max: number;
-          humidity: number;
-        };
-        weather: Array<{
-          description: string;
-          icon: string;
-        }>;
-        wind?: {
-          speed: number;
-        };
-      };
-
-      // Group forecast by date (day)
-      const forecastByDate: Record<string, ForecastItem[]> = {};
-      data.list.forEach((item: ForecastItem) => {
-        const date = new Date(item.dt * 1000).toISOString().split("T")[0];
-        if (!forecastByDate[date]) {
-          forecastByDate[date] = [];
-        }
-        forecastByDate[date].push(item);
-      });
-
-      // Get daily forecast (use noon data or average)
-      const dailyForecast = Object.entries(forecastByDate).map(([date, items]) => {
-        // Find noon forecast (12:00) or use the first item
-        const noonItem = items.find((item: ForecastItem) => {
-          const hour = new Date(item.dt * 1000).getHours();
-          return hour >= 11 && hour <= 13;
-        }) || items[Math.floor(items.length / 2)] || items[0];
+      // Map Open-Meteo format to app format
+      const dailyForecast = data.daily.time.map((date: string, index: number) => {
+        const weatherCode = data.daily.weather_code[index];
+        const maxTemp = data.daily.temperature_2m_max[index];
+        const minTemp = data.daily.temperature_2m_min[index];
+        // Use max temp as main temperature (noon temperature)
+        const temperature = Math.round(maxTemp);
 
         return {
           date,
-          temperature: Math.round(noonItem.main.temp),
-          feelsLike: Math.round(noonItem.main.feels_like),
-          description: noonItem.weather[0].description || "N/A",
-          icon: noonItem.weather[0].icon || "01d",
-          humidity: noonItem.main.humidity || 0,
-          windSpeed: Math.round((noonItem.wind?.speed || 0) * 3.6),
-          minTemp: Math.round(Math.min(...items.map((i: ForecastItem) => i.main.temp_min))),
-          maxTemp: Math.round(Math.max(...items.map((i: ForecastItem) => i.main.temp_max))),
+          temperature,
+          feelsLike: temperature, // Open-Meteo doesn't have feels_like, use temperature
+          description: mapWeatherCodeToDescription(weatherCode),
+          icon: mapWeatherCodeToIcon(weatherCode),
+          humidity: Math.round(data.daily.relative_humidity_2m_max[index] || 0),
+          windSpeed: Math.round((data.daily.wind_speed_10m_max[index] || 0) * 3.6), // Convert m/s to km/h
+          minTemp: Math.round(minTemp),
+          maxTemp: Math.round(maxTemp),
         };
       });
 
       return NextResponse.json({
-        city: data.city?.name || "Unknown",
-        country: data.city?.country || "",
+        city: "Unknown", // Open-Meteo doesn't provide city name
+        country: "",
         forecast: dailyForecast,
       });
+    } else {
+      // Current weather
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia/Ho_Chi_Minh`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.error("Open-Meteo API error:", response.status, response.statusText);
+        return NextResponse.json(
+          { error: "Failed to fetch weather data" },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.current) {
+        console.error("Invalid weather data structure:", data);
+        return NextResponse.json(
+          { error: "Invalid weather data received" },
+          { status: 500 }
+        );
+      }
+
+      const weatherCode = data.current.weather_code;
+      const temperature = Math.round(data.current.temperature_2m);
+
+      // Format current weather data (compatible with existing components)
+      const weatherData = {
+        temperature,
+        feelsLike: temperature, // Open-Meteo doesn't have feels_like, use temperature
+        description: mapWeatherCodeToDescription(weatherCode),
+        icon: mapWeatherCodeToIcon(weatherCode),
+        humidity: Math.round(data.current.relative_humidity_2m || 0),
+        windSpeed: Math.round((data.current.wind_speed_10m || 0) * 3.6), // Convert m/s to km/h
+        city: "Unknown", // Open-Meteo doesn't provide city name
+        country: "",
+      };
+
+      return NextResponse.json(weatherData);
     }
-
-    // Handle current weather data
-    if (!data.main || !data.weather || !data.weather[0]) {
-      console.error("Invalid weather data structure:", data);
-      return NextResponse.json(
-        { error: "Invalid weather data received" },
-        { status: 500 }
-      );
-    }
-
-    // Format current weather data
-    const weatherData = {
-      temperature: Math.round(data.main.temp),
-      feelsLike: Math.round(data.main.feels_like),
-      description: data.weather[0].description || "N/A",
-      icon: data.weather[0].icon || "01d",
-      humidity: data.main.humidity || 0,
-      windSpeed: Math.round((data.wind?.speed || 0) * 3.6), // Convert m/s to km/h
-      city: data.name || "Unknown",
-      country: data.sys?.country || "",
-    };
-
-    return NextResponse.json(weatherData);
   } catch (error) {
     console.error("Error fetching weather:", error);
     return NextResponse.json(

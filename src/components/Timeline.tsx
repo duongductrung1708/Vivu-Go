@@ -8,7 +8,7 @@ import {
 } from "@dnd-kit/sortable";
 import { format } from "date-fns";
 import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Route, Loader2 } from "lucide-react";
 import { useTripStore } from "@/store/useTripStore";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { PlaceCard } from "./PlaceCard";
@@ -28,6 +28,8 @@ export function Timeline() {
   const isMounted = useIsMounted();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [routeDistance, setRouteDistance] = useState<number | null>(null);
   const {
     trip,
     selectedDayId,
@@ -39,6 +41,7 @@ export function Timeline() {
     updatePlace,
     getDayCost,
     showNearbyPlacesForPlace,
+    optimizeRoute,
   } = useTripStore();
 
   // Configure sensors for drag and drop (including touch support)
@@ -81,6 +84,40 @@ export function Timeline() {
   };
 
   const dayCost = selectedDay ? getDayCost(selectedDay.id) : 0;
+
+  // Check if selected day has places with coordinates
+  const hasPlacesWithCoords = selectedDay
+    ? selectedDay.places.some(
+        (place) =>
+          typeof place.latitude === "number" &&
+          typeof place.longitude === "number"
+      )
+    : false;
+  const placesWithCoordsCount = selectedDay
+    ? selectedDay.places.filter(
+        (place) =>
+          typeof place.latitude === "number" &&
+          typeof place.longitude === "number"
+      ).length
+    : 0;
+
+  const handleOptimizeRoute = async () => {
+    if (!selectedDay || placesWithCoordsCount < 2) {
+      return;
+    }
+
+    setIsOptimizing(true);
+    try {
+      const result = await optimizeRoute(selectedDay.id, "driving");
+      if (result) {
+        setRouteDistance(result.totalDistance);
+      }
+    } catch (error) {
+      console.error("Error optimizing route:", error);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   // Get location from trip places if available, otherwise return null
   const getLocation = () => {
@@ -175,11 +212,44 @@ export function Timeline() {
         </div>
       </LayoutGroup>
 
-      <div className="shrink-0 flex items-center justify-between rounded-2xl bg-card px-3 py-1.5 text-xs text-card-foreground shadow-sm border border-border">
-        <span>Tổng ngày</span>
-        <span className="font-semibold text-foreground">
-          {dayCost.toLocaleString("vi-VN")} đ
-        </span>
+      <div className="shrink-0 space-y-2">
+        <div className="flex items-center justify-between rounded-2xl bg-card px-3 py-1.5 text-xs text-card-foreground shadow-sm border border-border">
+          <span>Tổng ngày</span>
+          <span className="font-semibold text-foreground">
+            {dayCost.toLocaleString("vi-VN")} đ
+          </span>
+        </div>
+
+        {hasPlacesWithCoords && placesWithCoordsCount >= 2 && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOptimizeRoute}
+              disabled={isOptimizing}
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isOptimizing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Đang tối ưu...</span>
+                </>
+              ) : (
+                <>
+                  <Route className="h-3.5 w-3.5" />
+                  <span>Tối ưu lịch trình ngắn nhất</span>
+                </>
+              )}
+            </button>
+            {routeDistance !== null && (
+              <div className="rounded-2xl bg-card px-3 py-1.5 text-xs text-card-foreground shadow-sm border border-border">
+                <span className="text-muted-foreground">Tổng: </span>
+                <span className="font-semibold text-foreground">
+                  {(routeDistance / 1000).toFixed(1)} km
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>

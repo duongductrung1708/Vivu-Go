@@ -74,19 +74,19 @@ export function WeatherForecast({
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    // Nếu không có ngày nào trong 5 ngày tới thì không gọi API
+    // Kiểm tra xem có ngày nào trong phạm vi dự báo (16 ngày) không
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const maxAllowedDate = new Date(today);
-    maxAllowedDate.setDate(maxAllowedDate.getDate() + 5);
+    maxAllowedDate.setDate(maxAllowedDate.getDate() + 16); // Open-Meteo hỗ trợ đến 16 ngày
 
-    const hasDateWithin5Days = trip.days.some((day) => {
+    const hasDateWithinRange = trip.days.some((day) => {
       const d = new Date(day.date);
       d.setHours(0, 0, 0, 0);
       return d >= today && d <= maxAllowedDate;
     });
 
-    if (!latitude || !longitude || trip.days.length === 0 || !hasDateWithin5Days) {
+    if (!latitude || !longitude || trip.days.length === 0 || !hasDateWithinRange) {
       setIsLoading(false);
       setForecast(null);
       return;

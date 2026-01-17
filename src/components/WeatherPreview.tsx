@@ -68,7 +68,8 @@ export function WeatherPreview({
       return;
     }
 
-    // Nếu khoảng ngày chọn không giao với 5 ngày tới thì không gọi API
+    // Nếu khoảng ngày chọn không giao với 16 ngày tới thì không gọi API
+    // Open-Meteo hỗ trợ dự báo đến 16 ngày
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const start = new Date(startDate);
@@ -77,7 +78,7 @@ export function WeatherPreview({
     end.setHours(0, 0, 0, 0);
 
     const maxAllowedDate = new Date(today);
-    maxAllowedDate.setDate(maxAllowedDate.getDate() + 5);
+    maxAllowedDate.setDate(maxAllowedDate.getDate() + 16);
 
     // Nếu toàn bộ khoảng [start, end] nằm sau maxAllowedDate thì bỏ qua
     if (start > maxAllowedDate) {
