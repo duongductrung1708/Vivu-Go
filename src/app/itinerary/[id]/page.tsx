@@ -260,7 +260,7 @@ export default function ItineraryDetailPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
-      <Navbar variant="fixed" />
+      <Navbar variant="fixed" itineraryId={itineraryId} />
       <main className="flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24 relative">
         {/* Toggle Sidebar Button */}
         <button

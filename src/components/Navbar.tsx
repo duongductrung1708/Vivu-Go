@@ -2,20 +2,29 @@
 
 import { MapPin, LogIn, LogOut, User } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveUsers } from "@/hooks/useActiveUsers";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
   variant?: "default" | "fixed";
   className?: string;
+  itineraryId?: string;
 }
 
-export default function Navbar({ variant = "default", className }: NavbarProps) {
+export default function Navbar({ variant = "default", className, itineraryId }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, signOut } = useAuth();
+
+  // Extract itineraryId from pathname if not provided
+  const currentItineraryId = itineraryId || (pathname?.match(/\/itinerary\/([^/]+)/)?.[1]);
+  const activeUsers = useActiveUsers(currentItineraryId);
 
   const handleSignOut = async () => {
     await signOut();
@@ -42,7 +51,57 @@ export default function Navbar({ variant = "default", className }: NavbarProps) 
           <ThemeToggle variant="inline" />
           {user ? (
             <div className="flex items-center gap-3">
-              <Button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm" onClick={() => router.push('/profile')}>
+              {/* Active Users Avatars */}
+              {activeUsers.length > 0 && (
+                <div className="flex items-center gap-2 px-2">
+                  <TooltipProvider>
+                    <div className="flex -space-x-2">
+                      {activeUsers.slice(0, 3).map((activeUser) => {
+                        const initials = activeUser.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2) || activeUser.email.charAt(0).toUpperCase();
+
+                        return (
+                          <Tooltip key={activeUser.userId}>
+                            <TooltipTrigger asChild>
+                              <Avatar className="w-8 h-8 border-2 border-background cursor-pointer hover:scale-110 transition-transform">
+                                <AvatarImage src={activeUser.avatarUrl} alt={activeUser.name} />
+                                <AvatarFallback className="bg-linear-to-br from-primary to-accent text-white text-xs">
+                                  {initials}
+                                </AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-sm">{activeUser.name}</p>
+                              <p className="text-xs text-muted-foreground">Đang chỉnh sửa</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                      {activeUsers.length > 3 && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-8 h-8 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-xs font-semibold text-secondary-foreground">
+                              +{activeUsers.length - 3}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="space-y-1">
+                              {activeUsers.slice(3).map((u) => (
+                                <p key={u.userId} className="text-sm">{u.name}</p>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </TooltipProvider>
+                </div>
+              )}
+              <Button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/30 hover:text-primary-foreground transition-colors" onClick={() => router.push('/profile')}>
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">
                   {user.user_metadata?.full_name || user.email?.split("@")[0]}

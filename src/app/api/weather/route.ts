@@ -71,7 +71,30 @@ export async function GET(request: NextRequest) {
     if (type === "forecast") {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&timezone=Asia/Ho_Chi_Minh&forecast_days=16`;
 
-      const response = await fetch(url);
+      // Add timeout and retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": "Vivu-Go/1.0",
+          },
+        });
+        clearTimeout(timeoutId);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === "AbortError") {
+          console.error("Open-Meteo API timeout");
+          return NextResponse.json(
+            { error: "Request timeout - API không phản hồi kịp thời" },
+            { status: 504 }
+          );
+        }
+        throw error;
+      }
 
       if (!response.ok) {
         console.error("Open-Meteo API error:", response.status, response.statusText);
@@ -121,7 +144,30 @@ export async function GET(request: NextRequest) {
       // Current weather
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia/Ho_Chi_Minh`;
 
-      const response = await fetch(url);
+      // Add timeout and retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": "Vivu-Go/1.0",
+          },
+        });
+        clearTimeout(timeoutId);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === "AbortError") {
+          console.error("Open-Meteo API timeout");
+          return NextResponse.json(
+            { error: "Request timeout - API không phản hồi kịp thời" },
+            { status: 504 }
+          );
+        }
+        throw error;
+      }
 
       if (!response.ok) {
         console.error("Open-Meteo API error:", response.status, response.statusText);
@@ -160,9 +206,26 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error fetching weather:", error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Không thể tải dữ liệu thời tiết";
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      if (error.name === "AbortError" || error.message.includes("timeout")) {
+        errorMessage = "Kết nối timeout - Vui lòng thử lại sau";
+        statusCode = 504;
+      } else if (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED")) {
+        errorMessage = "Không thể kết nối đến API thời tiết - Vui lòng kiểm tra kết nối mạng";
+        statusCode = 503;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
     return NextResponse.json(
-      { error: "Failed to fetch weather data" },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     );
   }
 }
