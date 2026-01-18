@@ -42,12 +42,12 @@ export default function Navbar({ variant = "default", className }: NavbarProps) 
           <ThemeToggle variant="inline" />
           {user ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm">
+              <Button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm" onClick={() => router.push('/profile')}>
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">
                   {user.user_metadata?.full_name || user.email?.split("@")[0]}
                 </span>
-              </div>
+              </Button>
               <Button
                 variant="ghost" size="icon"
                 onClick={handleSignOut}

@@ -53,10 +53,14 @@ export function Timeline() {
     })
   );
 
-  const selectedDay = useMemo(
-    () => trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0],
-    [trip.days, selectedDayId]
-  );
+  const selectedDay = useMemo(() => {
+    const day = trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
+    // Ensure places is always an array
+    if (day && !day.places) {
+      return { ...day, places: [] };
+    }
+    return day;
+  }, [trip.days, selectedDayId]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActivePlaceId(event.active.id as string);
@@ -65,7 +69,7 @@ export function Timeline() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActivePlaceId(null);
-    if (!over || !selectedDay) {
+    if (!over || !selectedDay || !selectedDay.places) {
       return;
     }
     if (active.id === over.id) {
@@ -86,14 +90,14 @@ export function Timeline() {
   const dayCost = selectedDay ? getDayCost(selectedDay.id) : 0;
 
   // Check if selected day has places with coordinates
-  const hasPlacesWithCoords = selectedDay
+  const hasPlacesWithCoords = selectedDay && selectedDay.places
     ? selectedDay.places.some(
         (place) =>
           typeof place.latitude === "number" &&
           typeof place.longitude === "number"
       )
     : false;
-  const placesWithCoordsCount = selectedDay
+  const placesWithCoordsCount = selectedDay && selectedDay.places
     ? selectedDay.places.filter(
         (place) =>
           typeof place.latitude === "number" &&
@@ -267,11 +271,11 @@ export function Timeline() {
         >
           {selectedDay && (
             <SortableContext
-              items={selectedDay.places.map((place) => place.id)}
+              items={(selectedDay.places || []).map((place) => place.id)}
               strategy={verticalListSortingStrategy}
             >
               <AnimatePresence initial={false}>
-                {selectedDay.places.map((place) => (
+                {(selectedDay.places || []).map((place) => (
                   <motion.div
                     key={place.id}
                     layout
@@ -345,7 +349,7 @@ export function Timeline() {
         </div>
         <DragOverlay>
           {activePlaceId && selectedDay ? (() => {
-            const activePlace = selectedDay.places.find(p => p.id === activePlaceId);
+            const activePlace = selectedDay.places?.find(p => p.id === activePlaceId);
             return activePlace ? (
               <div className="rotate-3 opacity-90">
                 <PlaceCard
