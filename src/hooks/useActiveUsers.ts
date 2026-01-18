@@ -41,19 +41,31 @@ export function useActiveUsers(itineraryId: string | undefined) {
           const users: ActiveUser[] = [];
 
           Object.values(state).forEach((presences) => {
-            presences.forEach((presence: { user?: ActiveUser }) => {
-              if (presence.user && presence.user.userId !== user.id) {
-                users.push(presence.user);
-              }
-            });
+            if (Array.isArray(presences)) {
+              presences.forEach((presence: Record<string, unknown>) => {
+                const userData = presence.user as ActiveUser | undefined;
+                if (userData && userData.userId !== user.id) {
+                  users.push(userData);
+                }
+              });
+            }
           });
 
           setActiveUsers(users);
         })
         .on("presence", { event: "join" }, ({ newPresences }) => {
-          const newUsers = newPresences
-            .map((p: { user?: ActiveUser }) => p.user)
-            .filter((u): u is ActiveUser => u !== undefined && u.userId !== user.id);
+          const newUsers: ActiveUser[] = [];
+          
+          Object.values(newPresences || {}).forEach((presences) => {
+            if (Array.isArray(presences)) {
+              presences.forEach((presence: Record<string, unknown>) => {
+                const userData = presence.user as ActiveUser | undefined;
+                if (userData && userData.userId !== user.id) {
+                  newUsers.push(userData);
+                }
+              });
+            }
+          });
           
           setActiveUsers((prev) => {
             const existingIds = new Set(prev.map((u) => u.userId));
@@ -62,9 +74,18 @@ export function useActiveUsers(itineraryId: string | undefined) {
           });
         })
         .on("presence", { event: "leave" }, ({ leftPresences }) => {
-          const leftUserIds = new Set(
-            leftPresences.map((p: { user?: ActiveUser }) => p.user?.userId).filter(Boolean)
-          );
+          const leftUserIds = new Set<string>();
+          
+          Object.values(leftPresences || {}).forEach((presences) => {
+            if (Array.isArray(presences)) {
+              presences.forEach((presence: Record<string, unknown>) => {
+                const userData = presence.user as ActiveUser | undefined;
+                if (userData?.userId) {
+                  leftUserIds.add(userData.userId);
+                }
+              });
+            }
+          });
 
           setActiveUsers((prev) => prev.filter((u) => !leftUserIds.has(u.userId)));
         });
