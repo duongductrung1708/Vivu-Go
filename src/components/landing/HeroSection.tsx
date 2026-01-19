@@ -10,10 +10,10 @@ const HeroSection = () => {
   return (
     <section className="from-background via-secondary/30 to-background relative min-h-screen overflow-hidden bg-linear-to-br">
       <Navbar />
-      {/* Decorative blobs */}
-      <div className="bg-primary/20 absolute top-20 left-10 h-72 w-72 rounded-full blur-3xl" />
-      <div className="bg-accent/20 absolute right-10 bottom-20 h-96 w-96 rounded-full blur-3xl" />
-      <div className="bg-secondary/40 absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
+      {/* Decorative blobs - fixed dimensions to prevent CLS */}
+      <div className="bg-primary/20 absolute top-20 left-10 h-72 w-72 rounded-full blur-3xl" style={{ contain: "layout" }} />
+      <div className="bg-accent/20 absolute right-10 bottom-20 h-96 w-96 rounded-full blur-3xl" style={{ contain: "layout" }} />
+      <div className="bg-secondary/40 absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" style={{ contain: "layout" }} />
 
       <div className="relative z-10 container mx-auto mt-4 px-4 py-20">
         <div className="flex min-h-[80vh] flex-col items-center gap-12 lg:flex-row">
@@ -67,16 +67,18 @@ const HeroSection = () => {
                   aria-label="Bắt đầu lên lịch ngay"
                 >
                   <MapPin className="h-5 w-5 sm:mr-2" />
-                  <span className="hidden sm:inline">Bắt đầu lên lịch ngay</span>
+                  <span className="sm:inline">Bắt đầu lên lịch ngay</span>
                 </Button>
               </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full border-2 px-8 py-6 text-lg font-semibold"
-              >
-                Xem demo
-              </Button>
+              <Link href="/demo">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full border-2 px-8 py-6 text-lg font-semibold"
+                >
+                  Xem demo
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
 
