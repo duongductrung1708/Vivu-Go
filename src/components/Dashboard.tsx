@@ -13,6 +13,7 @@ import {
   Trash2,
   Edit,
   Share2,
+  Camera,
   Clock,
   Globe,
 } from "lucide-react";
@@ -530,6 +531,15 @@ function ItineraryCard({
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Chỉnh sửa
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/memory?itineraryId=${itinerary.id}`);
+                  }}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Kỷ niệm (ảnh từng ngày)
                 </DropdownMenuItem>
                 {isOwner && (
                   <>

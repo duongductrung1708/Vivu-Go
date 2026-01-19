@@ -5,6 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Trip } from "@/store/useTripStore";
 
+export type RouteProfile = "driving" | "walking" | "cycling";
+
+export type RouteCacheEntry = {
+  coordinates: string; // "lng,lat;lng,lat;..."
+  profile: RouteProfile;
+  geometry: GeoJSON.LineString;
+  distance: number; // meters
+  duration: number; // seconds
+  created_at?: string; // ISO timestamp for debugging/invalidations
+};
+
+export type RouteCacheMap = Record<string, RouteCacheEntry>;
+
 export interface Itinerary {
   id: string;
   user_id: string;
@@ -16,6 +29,7 @@ export interface Itinerary {
   people_count: number;
   is_public: boolean;
   trip_data: Trip;
+  route_cache?: RouteCacheMap;
   created_at: string;
   updated_at: string;
   version?: number; // For optimistic locking
@@ -30,6 +44,7 @@ export interface CreateItineraryInput {
   people_count?: number;
   is_public?: boolean;
   trip_data?: Trip;
+  route_cache?: RouteCacheMap;
 }
 
 // Fetch all itineraries for the current user (including shared ones)

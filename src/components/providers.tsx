@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import { PWAInstaller } from "@/components/PWAInstaller";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useState } from "react";
 
@@ -16,8 +18,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minute
+            staleTime: 5 * 60 * 1000, // 5 minutes - keep data fresh longer for offline
+            gcTime: 24 * 60 * 60 * 1000, // 24 hours - keep cached data for offline access (React Query v5)
             refetchOnWindowFocus: false,
+            refetchOnReconnect: true, // Refetch when back online
+            retry: 1, // Retry once on failure
+            retryDelay: 1000,
           },
         },
       })
@@ -29,6 +35,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <TooltipProvider>
             <ScrollToTopButton />
+            <PWAInstaller />
+            <OfflineIndicator />
             {children}
             <Toaster />
             <Sonner />

@@ -19,6 +19,7 @@ import {
   Sun,
   Moon,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { useTripStore } from "@/store/useTripStore";
 import { useGeolocation } from "@/hooks/use-geolocation";
@@ -26,6 +27,7 @@ import { NearbyPlaces } from "./NearbyPlaces";
 import { PlaceChatAssistant } from "./PlaceChatAssistant";
 import { WeatherWidget } from "./WeatherWidget";
 import { WeatherForecast } from "./WeatherForecast";
+import type { RouteCacheEntry, RouteCacheMap, RouteProfile } from "@/hooks/useItineraries";
 
 const MAPBOX_TOKEN =
   process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "YOUR_MAPBOX_ACCESS_TOKEN";
@@ -34,21 +36,19 @@ const DEFAULT_MAPBOX_STYLE =
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-type RouteProfile = "driving" | "walking" | "cycling";
-
-type RouteCache = {
-  coordinates: string; // "lng,lat;lng,lat;..."
-  profile: RouteProfile;
-  geometry: GeoJSON.LineString;
-  distance: number; // meters
-  duration: number; // seconds
-};
-
 type MapContainerProps = {
   sidebarCollapsed?: boolean;
+  itineraryId?: string;
+  initialRouteCache?: RouteCacheMap;
+  onRouteCacheUpdate?: (nextCache: RouteCacheMap) => void;
 };
 
-export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
+export function MapContainer({
+  sidebarCollapsed = false,
+  itineraryId,
+  initialRouteCache,
+  onRouteCacheUpdate,
+}: MapContainerProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -94,7 +94,7 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
   }, [mapTheme]);
   const { position, error: geoError } = useGeolocation(useMyLocation);
   const userLocationMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const routeCacheRef = useRef<Map<string, RouteCache>>(new Map());
+  const routeCacheRef = useRef<Map<string, RouteCacheEntry>>(new Map());
   const hasFlewToLocationRef = useRef(false);
   const {
     trip,
@@ -107,6 +107,30 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
   } = useTripStore();
 
   const selectedDay = getSelectedDay();
+  const lastPushedCacheRef = useRef<string>("");
+
+  // Hydrate in-memory cache from DB-provided cache
+  useEffect(() => {
+    if (!initialRouteCache) return;
+    Object.entries(initialRouteCache).forEach(([key, entry]) => {
+      if (entry?.geometry && entry?.coordinates && entry?.profile) {
+        routeCacheRef.current.set(key, entry);
+      }
+    });
+  }, [initialRouteCache]);
+
+  // Push cache updates upward (debounced-ish by stringify comparison)
+  const pushCacheUpdate = (key: string, entry: RouteCacheEntry) => {
+    if (!onRouteCacheUpdate) return;
+    const nextCache: RouteCacheMap = {
+      ...(initialRouteCache ?? {}),
+      [key]: entry,
+    };
+    const serialized = JSON.stringify(nextCache);
+    if (serialized === lastPushedCacheRef.current) return;
+    lastPushedCacheRef.current = serialized;
+    onRouteCacheUpdate(nextCache);
+  };
 
   // Determine time of day: dawn, day, dusk, night
   type TimeOfDay = "dawn" | "day" | "dusk" | "night";
@@ -595,7 +619,8 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
   // Function to fetch route from Mapbox Directions API with caching
   const fetchRoute = async (
     coordinates: [number, number][],
-    profile: RouteProfile
+    profile: RouteProfile,
+    persistToDb: boolean
   ) => {
     if (coordinates.length < 2) {
       return null;
@@ -628,13 +653,19 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
         const duration = route.duration; // seconds
 
         // Cache the result
-        routeCacheRef.current.set(cacheKey, {
+        const entry: RouteCacheEntry = {
           coordinates: coordinatesString,
           profile,
           geometry,
           distance,
           duration,
-        });
+          created_at: new Date().toISOString(),
+        };
+        routeCacheRef.current.set(cacheKey, entry);
+        // Persist only for itinerary map (avoid storing personalized "from my location" routes)
+        if (persistToDb && itineraryId) {
+          pushCacheUpdate(cacheKey, entry);
+        }
 
         setRouteInfo({ distance, duration });
         return geometry;
@@ -768,7 +799,8 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
 
       // Fetch and draw route if we have 2+ points
       if (coords.length >= 2) {
-        fetchRoute(coords, routeProfile).then((routeGeometry) => {
+        const persistToDb = !useMyLocation; // don't persist "from my location" routes
+        fetchRoute(coords, routeProfile, persistToDb).then((routeGeometry) => {
           // Map may have been unmounted or style reset while the request was in-flight
           const mapCurrent = mapRef.current;
           if (!mapCurrent || !isMapLoaded) {
@@ -1319,7 +1351,10 @@ export function MapContainer({ sidebarCollapsed = false }: MapContainerProps) {
 
               {isLoadingRoute && (
                 <div className="rounded-lg bg-card/95 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground shadow-lg">
-                  Đang tính toán đường đi...
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Đang tính toán đường đi...</span>
+                  </div>
                 </div>
               )}
             </div>

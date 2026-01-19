@@ -29,6 +29,18 @@ export const metadata: Metadata = {
     shortcut: "/vivu_logo.png",
     apple: "/apple-touch-icon.png",
   },
+  manifest: "/manifest.json",
+  themeColor: "#3b82f6",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Vivu Go",
+  },
 };
 
 export default function RootLayout({

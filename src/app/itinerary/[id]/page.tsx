@@ -26,6 +26,7 @@ import { useTripStore } from "@/store/useTripStore";
 import { useToast } from "@/hooks/use-toast";
 import { exportItineraryToPDF } from "@/utils/pdfExport";
 import { exportItineraryToGoogleCalendar } from "@/utils/googleCalendarExport";
+import type { RouteCacheMap } from "@/hooks/useItineraries";
 
 // Force dynamic rendering to prevent SSR issues with AuthProvider
 export const dynamic = "force-dynamic";
@@ -46,6 +47,8 @@ export default function ItineraryDetailPage() {
   const [activeTab, setActiveTab] = useState("timeline");
   const [showInfoCard, setShowInfoCard] = useState(true);
   const isMobile = useIsMobile();
+  const [routeCache, setRouteCache] = useState<RouteCacheMap>({});
+  const routeCacheSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Subscribe to realtime changes and sync with store
   const { isApplyingRemoteChange, markLocalUpdate } = useItineraryRealtime(itineraryId, setTrip);
@@ -149,6 +152,39 @@ export default function ItineraryDetailPage() {
       lastSavedTripRef.current = JSON.stringify(newTrip);
     }
   }, [itinerary, setTrip, isApplyingRemoteChange]);
+
+  // Hydrate route cache from DB (kept separate from trip auto-save)
+  useEffect(() => {
+    if (itinerary?.route_cache) {
+      // Avoid setState synchronously inside effect body (React Compiler lint)
+      Promise.resolve().then(() => setRouteCache(itinerary.route_cache as RouteCacheMap));
+    }
+  }, [itinerary?.route_cache]);
+
+  const handleRouteCacheUpdate = useCallback(
+    (nextCache: RouteCacheMap) => {
+      setRouteCache(nextCache);
+      if (!canEdit || !itineraryId) return;
+
+      if (routeCacheSaveTimeoutRef.current) {
+        clearTimeout(routeCacheSaveTimeoutRef.current);
+      }
+
+      // Debounce DB writes to avoid spamming updates while user pans/changes profile
+      routeCacheSaveTimeoutRef.current = setTimeout(() => {
+        updateItinerary.mutateAsync({
+          id: itineraryId,
+          updates: {
+            route_cache: nextCache,
+          },
+          expectedVersion: undefined,
+        }).catch((error: unknown) => {
+          console.error("Failed to persist route cache:", error);
+        });
+      }, 1200);
+    },
+    [canEdit, itineraryId, updateItinerary]
+  );
 
   const handleSave = async () => {
     if (!user) {
@@ -517,7 +553,12 @@ export default function ItineraryDetailPage() {
         )}
 
         <section className="h-full w-full shrink-0 md:w-auto md:flex-1">
-          <MapContainer sidebarCollapsed={isSidebarCollapsed} />
+          <MapContainer
+            sidebarCollapsed={isSidebarCollapsed}
+            itineraryId={itineraryId}
+            initialRouteCache={routeCache}
+            onRouteCacheUpdate={handleRouteCacheUpdate}
+          />
         </section>
       </main>
     </div>
