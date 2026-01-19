@@ -1,7 +1,7 @@
 // Kỷ niệm chuyến đi: upload ảnh theo từng ngày (Supabase storage)
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -30,7 +30,7 @@ type DayPhoto = {
     name: string;
 };
 
-export default function Memories() {
+function MemoriesContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const itineraryId = searchParams?.get("itineraryId") || "";
@@ -319,6 +319,20 @@ export default function Memories() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function MemoriesPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                    <div className="animate-pulse text-primary text-xl">Đang tải kỷ niệm...</div>
+                </div>
+            }
+        >
+            <MemoriesContent />
+        </Suspense>
     );
 }
 
