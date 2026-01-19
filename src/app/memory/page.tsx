@@ -14,6 +14,7 @@ import {
     Share2,
     UploadCloud,
     Loader2,
+    Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +39,8 @@ function MemoriesContent() {
     const { data: itinerary, isLoading: itineraryLoading } = useItinerary(itineraryId);
 
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const [dragging, setDragging] = useState<{ dayId: string; index: number } | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadTargetDay, setUploadTargetDay] = useState<string | null>(null);
     const [photosByDay, setPhotosByDay] = useState<Record<string, DayPhoto[]>>({});
@@ -83,6 +86,124 @@ function MemoriesContent() {
         () => Object.values(photosByDay).reduce((sum, arr) => sum + arr.length, 0),
         [photosByDay]
     );
+
+    const handleExportAlbumPDF = async () => {
+        if (!itinerary) return;
+
+        // Flatten all photos with day labels
+        const allPhotos: { dayLabel: string; url: string; name: string }[] = [];
+        days.forEach((day, idx) => {
+            const dayPhotos = photosByDay[day.id] || [];
+            const dayLabel = `Ngày ${idx + 1} — ${day.date}`;
+            dayPhotos.forEach((photo) => {
+                allPhotos.push({
+                    dayLabel,
+                    url: photo.url,
+                    name: photo.name,
+                });
+            });
+        });
+
+        if (allPhotos.length === 0) {
+            return;
+        }
+
+        setIsExporting(true);
+        try {
+            const { default: jsPDF } = await import("jspdf");
+            await import("@/font/Quicksand-Regular-normal.js");
+            await import("@/font/Quicksand-Bold-normal.js");
+
+            const doc = new jsPDF("p", "mm", "a4");
+
+            const loadImageAsDataUrl = async (url: string): Promise<string> => {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            };
+
+            for (let i = 0; i < allPhotos.length; i += 1) {
+                const photo = allPhotos[i];
+                if (i > 0) {
+                    doc.addPage();
+                }
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // Header
+                doc.setFont("Quicksand-Bold", "normal");
+                doc.setFontSize(14);
+                doc.text(itinerary.title, 10, 15);
+
+                doc.setFont("Quicksand-Regular", "normal");
+                doc.setFontSize(11);
+                doc.text(photo.dayLabel, 10, 25);
+
+                // Image
+                const dataUrl = await loadImageAsDataUrl(photo.url);
+                const margin = 10;
+                const maxWidth = pageWidth - margin * 2;
+                const maxHeight = pageHeight - 50;
+
+                // Simple aspect fit: assume landscape-ish photo
+                const imgWidth = maxWidth;
+                const imgHeight = maxHeight;
+
+                // Infer image format from extension
+                const lowerUrl = photo.url.toLowerCase();
+                const formatType =
+                    lowerUrl.endsWith(".png") || lowerUrl.includes("image/png") ? "PNG" : "JPEG";
+
+                doc.addImage(
+                    dataUrl,
+                    formatType,
+                    margin,
+                    30,
+                    imgWidth,
+                    imgHeight,
+                    undefined,
+                    "FAST"
+                );
+            }
+
+            const safeTitle =
+                itinerary.title.replace(/[^a-zA-Z0-9]/g, "_") || "album_ky_niem";
+            doc.save(`${safeTitle}_memories.pdf`);
+        } catch (error) {
+            console.error("Export memories to PDF failed:", error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleDragStart = (dayId: string, index: number) => {
+        setDragging({ dayId, index });
+    };
+
+    const handleDrop = (dayId: string, index: number) => {
+        if (!dragging || dragging.dayId !== dayId) return;
+
+        const fromIndex = dragging.index;
+        const toIndex = index;
+
+        setPhotosByDay((prev) => {
+            const dayPhotos = [...(prev[dayId] || [])];
+            const [moved] = dayPhotos.splice(fromIndex, 1);
+            dayPhotos.splice(toIndex, 0, moved);
+            return {
+                ...prev,
+                [dayId]: dayPhotos,
+            };
+        });
+
+        setDragging({ dayId, index: toIndex });
+    };
 
     const handleUpload = async (dayId: string, file: File) => {
         if (!itineraryId) return;
@@ -166,6 +287,15 @@ function MemoriesContent() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <ThemeToggle />
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={handleExportAlbumPDF}
+                                    disabled={totalPhotos === 0 || isExporting}
+                                >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {isExporting ? "Đang xuất PDF..." : "Xuất album PDF"}
+                                </Button>
                                 <Button variant="outline" size="sm">
                                     <Share2 className="w-4 h-4 mr-2" />
                                     Chia sẻ
@@ -265,11 +395,20 @@ function MemoriesContent() {
                                         </Card>
                                     ) : (
                                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            {dayPhotos.map((photo) => (
+                                            {dayPhotos.map((photo, index) => (
                                                 <Card
                                                     key={photo.url}
                                                     className="overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow"
                                                     onClick={() => setSelectedPhoto(photo.url)}
+                                                    draggable
+                                                    onDragStart={() =>
+                                                        handleDragStart(day.id, index)
+                                                    }
+                                                    onDragOver={(event) => {
+                                                        event.preventDefault();
+                                                    }}
+                                                    onDrop={() => handleDrop(day.id, index)}
+                                                    onDragEnd={() => setDragging(null)}
                                                 >
                                                     <div className="aspect-square relative overflow-hidden rounded-lg border border-border/60">
                                                         <Image
