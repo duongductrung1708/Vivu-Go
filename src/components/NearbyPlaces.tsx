@@ -36,10 +36,7 @@ type MapboxFeature = {
   };
 };
 
-const categoryMap: Record<
-  string,
-  { label: string; icon: string; defaultTimeSlot: TimeSlot }
-> = {
+const categoryMap: Record<string, { label: string; icon: string; defaultTimeSlot: TimeSlot }> = {
   restaurant: { label: "Nhà hàng", icon: "🍽️", defaultTimeSlot: "noon" },
   cafe: { label: "Cà phê", icon: "☕", defaultTimeSlot: "morning" },
   bar: { label: "Quán bar", icon: "🍺", defaultTimeSlot: "evening" },
@@ -55,12 +52,7 @@ const categoryMap: Record<
   other: { label: "Khác", icon: "📍", defaultTimeSlot: "morning" },
 };
 
-export function NearbyPlaces({
-  latitude,
-  longitude,
-  radius = 10000,
-  onClose,
-}: NearbyPlacesProps) {
+export function NearbyPlaces({ latitude, longitude, radius = 10000, onClose }: NearbyPlacesProps) {
   const [places, setPlaces] = useState<NearbyPlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -96,7 +88,7 @@ export function NearbyPlaces({
             try {
               // Use Mapbox Geocoding API with proximity search
               const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-                term
+                term,
               )}.json?proximity=${longitude},${latitude}&limit=5&types=poi&access_token=${MAPBOX_TOKEN}`;
 
               const response = await fetch(url);
@@ -105,33 +97,24 @@ export function NearbyPlaces({
               if (data.features && Array.isArray(data.features)) {
                 data.features.forEach((feature: MapboxFeature) => {
                   const [lng, lat] = feature.center;
-                  const distance = calculateDistance(
-                    latitude,
-                    longitude,
-                    lat,
-                    lng
-                  );
+                  const distance = calculateDistance(latitude, longitude, lat, lng);
 
                   if (distance <= radius) {
                     // Check if this place is already added
                     const existingIndex = allPlaces.findIndex(
-                      (p) => p.latitude === lat && p.longitude === lng
+                      (p) => p.latitude === lat && p.longitude === lng,
                     );
 
                     if (existingIndex === -1) {
                       allPlaces.push({
                         id: feature.id || `${category}-${lat}-${lng}`,
                         name:
-                          feature.text ||
-                          feature.properties?.name ||
-                          feature.place_name ||
-                          term,
+                          feature.text || feature.properties?.name || feature.place_name || term,
                         category: category,
                         distance: Math.round(distance),
                         latitude: lat,
                         longitude: lng,
-                        address:
-                          feature.place_name || feature.properties?.address,
+                        address: feature.place_name || feature.properties?.address,
                       });
                     }
                   }
@@ -145,7 +128,7 @@ export function NearbyPlaces({
 
         // Remove duplicates and sort by distance
         const uniquePlaces = Array.from(
-          new Map(allPlaces.map((place) => [place.id, place])).values()
+          new Map(allPlaces.map((place) => [place.id, place])).values(),
         ).sort((a, b) => a.distance - b.distance);
 
         setPlaces(uniquePlaces.slice(0, 20)); // Limit to 20 places
@@ -159,12 +142,7 @@ export function NearbyPlaces({
     fetchNearbyPlaces();
   }, [latitude, longitude, radius, selectedDay]);
 
-  const calculateDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371000; // Earth radius in meters
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -190,14 +168,14 @@ export function NearbyPlaces({
         place.category === "restaurant"
           ? "food"
           : place.category === "cafe"
-          ? "coffee"
-          : place.category === "shopping"
-          ? "shopping"
-          : place.category === "attraction" || place.category === "museum"
-          ? "sightseeing"
-          : place.category === "park"
-          ? "culture"
-          : "other",
+            ? "coffee"
+            : place.category === "shopping"
+              ? "shopping"
+              : place.category === "attraction" || place.category === "museum"
+                ? "sightseeing"
+                : place.category === "park"
+                  ? "culture"
+                  : "other",
       estimatedCost: 0,
       latitude: place.latitude,
       longitude: place.longitude,
@@ -216,24 +194,17 @@ export function NearbyPlaces({
   const categories = Array.from(new Set(places.map((p) => p.category)));
 
   return (
-    <div className="absolute bottom-3 left-3 right-3 z-30 max-h-[40vh] overflow-hidden rounded-lg border border-border bg-card shadow-lg">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+    <div className="border-border bg-card absolute right-3 bottom-3 left-3 z-30 max-h-[40vh] overflow-hidden rounded-lg border shadow-lg">
+      <div className="border-border flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-sm">Địa điểm xung quanh</h3>
+          <MapPin className="text-primary h-4 w-4" />
+          <h3 className="text-sm font-semibold">Địa điểm xung quanh</h3>
           {places.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              ({places.length} địa điểm)
-            </span>
+            <span className="text-muted-foreground text-xs">({places.length} địa điểm)</span>
           )}
         </div>
         {onClose && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -241,23 +212,21 @@ export function NearbyPlaces({
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-sm text-muted-foreground">
-            Đang tìm địa điểm...
-          </span>
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+          <span className="text-muted-foreground ml-2 text-sm">Đang tìm địa điểm...</span>
         </div>
       ) : places.length === 0 ? (
-        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground px-4 py-8 text-center text-sm">
           Không tìm thấy địa điểm nào trong bán kính {radius / 1000}km
         </div>
       ) : (
         <>
           {categories.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto px-4 py-2 border-b border-border">
+            <div className="border-border flex gap-2 overflow-x-auto border-b px-4 py-2">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
-                className="text-xs shrink-0"
+                className="shrink-0 text-xs"
                 onClick={() => setSelectedCategory(null)}
               >
                 Tất cả
@@ -269,7 +238,7 @@ export function NearbyPlaces({
                     key={cat}
                     variant={selectedCategory === cat ? "default" : "outline"}
                     size="sm"
-                    className="text-xs shrink-0"
+                    className="shrink-0 text-xs"
                     onClick={() => setSelectedCategory(cat)}
                   >
                     {info.icon} {info.label}
@@ -279,31 +248,24 @@ export function NearbyPlaces({
             </div>
           )}
 
-          <div className="overflow-y-auto max-h-[calc(40vh-120px)]">
-            <div className="divide-y divide-border">
+          <div className="max-h-[calc(40vh-120px)] overflow-y-auto">
+            <div className="divide-border divide-y">
               {filteredPlaces.map((place) => {
-                const categoryInfo =
-                  categoryMap[place.category] || categoryMap.other;
+                const categoryInfo = categoryMap[place.category] || categoryMap.other;
                 return (
                   <div
                     key={place.id}
-                    className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+                    className="hover:bg-muted/50 flex items-start justify-between gap-3 px-4 py-3 transition-colors"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
                         <span className="text-lg">{categoryInfo.icon}</span>
-                        <h4 className="font-medium text-sm truncate">
-                          {place.name}
-                        </h4>
+                        <h4 className="truncate text-sm font-medium">{place.name}</h4>
                       </div>
                       {place.address && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {place.address}
-                        </p>
+                        <p className="text-muted-foreground truncate text-xs">{place.address}</p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        📍 {place.distance}m
-                      </p>
+                      <p className="text-muted-foreground mt-1 text-xs">📍 {place.distance}m</p>
                     </div>
                     <Button
                       size="sm"

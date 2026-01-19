@@ -34,14 +34,10 @@ export async function exportItineraryToPDF(itinerary: Itinerary) {
 
   const tripInfo = [];
   if (itinerary.start_date) {
-    tripInfo.push(
-      `Ngày bắt đầu: ${format(new Date(itinerary.start_date), "dd/MM/yyyy")}`
-    );
+    tripInfo.push(`Ngày bắt đầu: ${format(new Date(itinerary.start_date), "dd/MM/yyyy")}`);
   }
   if (itinerary.end_date) {
-    tripInfo.push(
-      `Ngày kết thúc: ${format(new Date(itinerary.end_date), "dd/MM/yyyy")}`
-    );
+    tripInfo.push(`Ngày kết thúc: ${format(new Date(itinerary.end_date), "dd/MM/yyyy")}`);
   }
 
   tripInfo.forEach((info) => {
@@ -102,19 +98,18 @@ export async function exportItineraryToPDF(itinerary: Itinerary) {
   yPos += 6;
   doc.text(`• Tổng địa điểm: ${allPlaces.length} địa điểm`, 25, yPos);
   yPos += 6;
-  doc.text(
-    `• Tổng chi phí dự kiến: ${totalCost.toLocaleString("vi-VN")} VND`,
-    25,
-    yPos
-  );
+  doc.text(`• Tổng chi phí dự kiến: ${totalCost.toLocaleString("vi-VN")} VND`, 25, yPos);
   yPos += 15;
 
   // Group places by day
-  const placesByDay = allPlaces.reduce((acc, p) => {
-    if (!acc[p.dayNumber]) acc[p.dayNumber] = [];
-    acc[p.dayNumber].push(p);
-    return acc;
-  }, {} as Record<number, ExportPlace[]>);
+  const placesByDay = allPlaces.reduce(
+    (acc, p) => {
+      if (!acc[p.dayNumber]) acc[p.dayNumber] = [];
+      acc[p.dayNumber].push(p);
+      return acc;
+    },
+    {} as Record<number, ExportPlace[]>,
+  );
 
   // Itinerary details for each day
   Object.entries(placesByDay)
@@ -174,9 +169,7 @@ export async function exportItineraryToPDF(itinerary: Itinerary) {
       });
 
       // Get the final Y position after the table
-      const lastTable = (
-        doc as unknown as { lastAutoTable?: { finalY: number } }
-      ).lastAutoTable;
+      const lastTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
       yPos = (lastTable?.finalY ?? yPos) + 10;
     });
 
@@ -193,9 +186,6 @@ export async function exportItineraryToPDF(itinerary: Itinerary) {
   }
 
   // Save the PDF
-  const fileName = `${itinerary.title.replace(
-    /[^a-zA-Z0-9]/g,
-    "_"
-  )}_itinerary.pdf`;
+  const fileName = `${itinerary.title.replace(/[^a-zA-Z0-9]/g, "_")}_itinerary.pdf`;
   doc.save(fileName);
 }

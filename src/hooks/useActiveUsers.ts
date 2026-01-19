@@ -55,7 +55,7 @@ export function useActiveUsers(itineraryId: string | undefined) {
         })
         .on("presence", { event: "join" }, ({ newPresences }) => {
           const newUsers: ActiveUser[] = [];
-          
+
           Object.values(newPresences || {}).forEach((presences) => {
             if (Array.isArray(presences)) {
               presences.forEach((presence: Record<string, unknown>) => {
@@ -66,7 +66,7 @@ export function useActiveUsers(itineraryId: string | undefined) {
               });
             }
           });
-          
+
           setActiveUsers((prev) => {
             const existingIds = new Set(prev.map((u) => u.userId));
             const toAdd = newUsers.filter((u) => !existingIds.has(u.userId));
@@ -75,7 +75,7 @@ export function useActiveUsers(itineraryId: string | undefined) {
         })
         .on("presence", { event: "leave" }, ({ leftPresences }) => {
           const leftUserIds = new Set<string>();
-          
+
           Object.values(leftPresences || {}).forEach((presences) => {
             if (Array.isArray(presences)) {
               presences.forEach((presence: Record<string, unknown>) => {

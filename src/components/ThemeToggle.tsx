@@ -22,12 +22,7 @@ export function ThemeToggle({ variant = "default", className }: ThemeToggleProps
 
   if (!mounted) {
     return (
-      <Button
-        variant="outline"
-        size="icon"
-        className={cn("rounded-full", className)}
-        disabled
-      >
+      <Button variant="outline" size="icon" className={cn("rounded-full", className)} disabled>
         <Sun className="h-4 w-4" />
         <span className="sr-only">Toggle theme</span>
       </Button>
@@ -56,8 +51,8 @@ export function ThemeToggle({ variant = "default", className }: ThemeToggleProps
       variant="outline"
       size="icon"
       className={cn(
-        "fixed top-4 left-4 z-40 rounded-full bg-background/80 backdrop-blur border border-border shadow-md hover:shadow-lg",
-        className
+        "bg-background/80 border-border fixed top-4 left-4 z-40 rounded-full border shadow-md backdrop-blur hover:shadow-lg",
+        className,
       )}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >

@@ -160,7 +160,7 @@ export function useUpdateItinerary() {
           // For auto-save, we can skip version check and let realtime handle sync
           // But for manual save, we should inform the user
           throw new Error(
-            "Lịch trình đã được cập nhật bởi người khác. Vui lòng làm mới trang và thử lại."
+            "Lịch trình đã được cập nhật bởi người khác. Vui lòng làm mới trang và thử lại.",
           );
         }
       }
@@ -201,12 +201,9 @@ export function useDeleteItinerary() {
       }
 
       // Verify user is owner before deleting
-      const { data: isOwner, error: ownerError } = await supabase.rpc(
-        "user_owns_itinerary",
-        {
-          p_itinerary_id: id,
-        }
-      );
+      const { data: isOwner, error: ownerError } = await supabase.rpc("user_owns_itinerary", {
+        p_itinerary_id: id,
+      });
 
       if (ownerError) {
         throw new Error("Không thể xác minh quyền sở hữu");
@@ -217,10 +214,7 @@ export function useDeleteItinerary() {
       }
 
       // RLS policy will also enforce this, but we check here for better error message
-      const { error } = await supabase
-        .from("itineraries")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("itineraries").delete().eq("id", id);
 
       if (error) {
         throw error;
@@ -248,11 +242,7 @@ export function useItinerary(id: string) {
       // 2. Public itineraries
       // 3. Itineraries where user is an accepted collaborator
       // So we don't need to filter by user_id here
-      const { data, error } = await supabase
-        .from("itineraries")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabase.from("itineraries").select("*").eq("id", id).single();
 
       if (error) {
         throw error;

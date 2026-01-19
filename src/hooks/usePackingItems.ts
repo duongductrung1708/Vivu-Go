@@ -80,9 +80,7 @@ export function useCreatePackingItem() {
         .limit(1)
         .single();
 
-      const nextSortOrder = existingItems?.sort_order
-        ? existingItems.sort_order + 1
-        : 0;
+      const nextSortOrder = existingItems?.sort_order ? existingItems.sort_order + 1 : 0;
 
       const { data, error } = await supabase
         .from("packing_items")
@@ -166,16 +164,8 @@ export function useDeletePackingItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-    }: {
-      id: string;
-      itineraryId: string;
-    }) => {
-      const { error } = await supabase
-        .from("packing_items")
-        .delete()
-        .eq("id", id);
+    mutationFn: async ({ id }: { id: string; itineraryId: string }) => {
+      const { error } = await supabase.from("packing_items").delete().eq("id", id);
 
       if (error) {
         throw error;

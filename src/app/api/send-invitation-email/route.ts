@@ -11,20 +11,16 @@ const supabaseAdmin = createClient(
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
+  },
 );
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, itineraryId, itineraryTitle, inviterName, permission } =
-      body;
+    const { email, itineraryId, itineraryTitle, inviterName, permission } = body;
 
     if (!email || !itineraryId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Get itinerary details
@@ -35,16 +31,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (itineraryError || !itinerary) {
-      return NextResponse.json(
-        { error: "Itinerary not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Itinerary not found" }, { status: 404 });
     }
 
     // Get inviter details
-    const { data: inviter } = await supabaseAdmin.auth.admin.getUserById(
-      itinerary.user_id
-    );
+    const { data: inviter } = await supabaseAdmin.auth.admin.getUserById(itinerary.user_id);
 
     const inviterEmail = inviter?.user?.email || "một người dùng";
     const inviterDisplayName = inviterName || inviterEmail;
@@ -99,12 +90,8 @@ export async function POST(request: NextRequest) {
             <div class="content">
               <p>Xin chào,</p>
               <p><strong>${inviterDisplayName}</strong> đã mời bạn cộng tác trên lịch trình:</p>
-              <h2 style="color: #667eea;">${
-                itinerary.title || itineraryTitle
-              }</h2>
-              <p>Quyền truy cập: <strong>${
-                permission === "edit" ? "Chỉnh sửa" : "Đọc"
-              }</strong></p>
+              <h2 style="color: #667eea;">${itinerary.title || itineraryTitle}</h2>
+              <p>Quyền truy cập: <strong>${permission === "edit" ? "Chỉnh sửa" : "Đọc"}</strong></p>
               <p>Vui lòng đăng nhập vào ứng dụng để xem và chấp nhận lời mời.</p>
               <a href="${appUrl}/dashboard" class="button" style="color: white;">Xem lời mời</a>
               <p style="margin-top: 20px; color: #666; font-size: 14px;">
@@ -126,8 +113,7 @@ export async function POST(request: NextRequest) {
       // Use Resend's test domain if no custom domain is configured
       // For testing: use onboarding@resend.dev (automatically verified)
       // For production: verify your own domain in Resend Dashboard
-      const fromEmail =
-        process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+      const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
       console.log("Sending from:", fromEmail);
 
@@ -165,11 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Try to send email using SMTP (Gmail, etc.) if configured
-    if (
-      process.env.SMTP_HOST &&
-      process.env.SMTP_USER &&
-      process.env.SMTP_PASS
-    ) {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       console.log("Attempting to send email via SMTP to:", email);
 
       try {
@@ -199,27 +181,22 @@ export async function POST(request: NextRequest) {
           messageId: info.messageId,
         });
       } catch (smtpError) {
-        const errorMessage =
-          smtpError instanceof Error ? smtpError.message : String(smtpError);
+        const errorMessage = smtpError instanceof Error ? smtpError.message : String(smtpError);
         console.error("SMTP error:", smtpError);
         return NextResponse.json(
           {
             success: false,
             error: "Failed to send email via SMTP",
             details: errorMessage,
-            message:
-              errorMessage ||
-              "SMTP configuration error. Please check SMTP settings.",
+            message: errorMessage || "SMTP configuration error. Please check SMTP settings.",
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
 
     // No email service configured
-    console.warn(
-      "Email service not configured. RESEND_API_KEY or SMTP settings are missing."
-    );
+    console.warn("Email service not configured. RESEND_API_KEY or SMTP settings are missing.");
     console.log("Email invitation details (NOT SENT):", {
       to: email,
       subject: emailSubject,
@@ -237,13 +214,10 @@ export async function POST(request: NextRequest) {
           subject: emailSubject,
         },
       },
-      { status: 500 }
+      { status: 500 },
     );
   } catch (error) {
     console.error("Error sending invitation email:", error);
-    return NextResponse.json(
-      { error: "Failed to send invitation email" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to send invitation email" }, { status: 500 });
   }
 }

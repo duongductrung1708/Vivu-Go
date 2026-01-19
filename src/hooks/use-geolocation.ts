@@ -41,7 +41,7 @@ export function useGeolocation(enable: boolean) {
             enableHighAccuracy: false,
             maximumAge: 30_000,
             timeout: 10_000,
-          }
+          },
         );
       },
       (err) => {
@@ -53,15 +53,13 @@ export function useGeolocation(enable: boolean) {
               "Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép trong cài đặt trình duyệt.";
             break;
           case 2: // POSITION_UNAVAILABLE
-            errorMessage =
-              "Không thể xác định vị trí. Vui lòng kiểm tra GPS hoặc kết nối mạng.";
+            errorMessage = "Không thể xác định vị trí. Vui lòng kiểm tra GPS hoặc kết nối mạng.";
             break;
           case 3: // TIMEOUT
             errorMessage = "Hết thời gian chờ định vị. Vui lòng thử lại.";
             break;
           default:
-            errorMessage =
-              err.message || "Không thể lấy vị trí. Vui lòng thử lại.";
+            errorMessage = err.message || "Không thể lấy vị trí. Vui lòng thử lại.";
         }
 
         setState({ position: null, error: errorMessage });
@@ -70,7 +68,7 @@ export function useGeolocation(enable: boolean) {
         enableHighAccuracy: false, // Không yêu cầu GPS hardware
         maximumAge: 300_000, // Chấp nhận vị trí cũ đến 5 phút
         timeout: 10_000, // Timeout 10 giây
-      }
+      },
     );
 
     return () => {

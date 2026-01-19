@@ -5,7 +5,10 @@ import { usePathname } from "next/navigation";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface NavLinkProps extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "href" | "className"> {
+interface NavLinkProps extends Omit<
+  React.ComponentPropsWithoutRef<typeof Link>,
+  "href" | "className"
+> {
   href: string;
   className?: string;
   activeClassName?: string;
@@ -24,7 +27,7 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
         {...props}
       />
     );
-  }
+  },
 );
 
 NavLink.displayName = "NavLink";

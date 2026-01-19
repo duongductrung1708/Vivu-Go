@@ -60,10 +60,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type") || "current"; // "current" or "forecast"
 
     if (!lat || !lon) {
-      return NextResponse.json(
-        { error: "Latitude and longitude are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Latitude and longitude are required" }, { status: 400 });
     }
 
     // Fetch weather from Open-Meteo API (free, no API key required)
@@ -90,7 +87,7 @@ export async function GET(request: NextRequest) {
           console.error("Open-Meteo API timeout");
           return NextResponse.json(
             { error: "Request timeout - API không phản hồi kịp thời" },
-            { status: 504 }
+            { status: 504 },
           );
         }
         throw error;
@@ -100,7 +97,7 @@ export async function GET(request: NextRequest) {
         console.error("Open-Meteo API error:", response.status, response.statusText);
         return NextResponse.json(
           { error: "Failed to fetch weather forecast data" },
-          { status: response.status }
+          { status: response.status },
         );
       }
 
@@ -108,10 +105,7 @@ export async function GET(request: NextRequest) {
 
       if (!data.daily || !data.daily.time || !Array.isArray(data.daily.time)) {
         console.error("Invalid forecast data structure:", data);
-        return NextResponse.json(
-          { error: "Invalid forecast data received" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Invalid forecast data received" }, { status: 500 });
       }
 
       // Map Open-Meteo format to app format
@@ -163,7 +157,7 @@ export async function GET(request: NextRequest) {
           console.error("Open-Meteo API timeout");
           return NextResponse.json(
             { error: "Request timeout - API không phản hồi kịp thời" },
-            { status: 504 }
+            { status: 504 },
           );
         }
         throw error;
@@ -173,7 +167,7 @@ export async function GET(request: NextRequest) {
         console.error("Open-Meteo API error:", response.status, response.statusText);
         return NextResponse.json(
           { error: "Failed to fetch weather data" },
-          { status: response.status }
+          { status: response.status },
         );
       }
 
@@ -181,10 +175,7 @@ export async function GET(request: NextRequest) {
 
       if (!data.current) {
         console.error("Invalid weather data structure:", data);
-        return NextResponse.json(
-          { error: "Invalid weather data received" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Invalid weather data received" }, { status: 500 });
       }
 
       const weatherCode = data.current.weather_code;
@@ -206,7 +197,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error fetching weather:", error);
-    
+
     // Provide more specific error messages
     let errorMessage = "Không thể tải dữ liệu thời tiết";
     let statusCode = 500;
@@ -223,10 +214,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: statusCode }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }
-

@@ -7,13 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Itinerary } from "@/hooks/useItineraries";
 import Loading from "@/components/Loading";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Calendar,
   Users,
@@ -60,14 +54,10 @@ export default function SharedItineraryPage() {
 
   if (error || !shareData) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">
-            Không tìm thấy lịch trình
-          </h2>
-          <Button onClick={() => router.push("/dashboard")}>
-            Quay lại Dashboard
-          </Button>
+          <h2 className="mb-4 text-xl font-semibold">Không tìm thấy lịch trình</h2>
+          <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
         </div>
       </div>
     );
@@ -77,7 +67,7 @@ export default function SharedItineraryPage() {
 
   if (!itinerary) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Không tìm thấy lịch trình</CardTitle>
@@ -95,41 +85,37 @@ export default function SharedItineraryPage() {
   const canEdit = shareData.permission === "edit";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Navbar variant="fixed" />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.push("/")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Về trang chủ
+          <Button variant="ghost" onClick={() => router.push("/")} aria-label="Về trang chủ">
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Về trang chủ</span>
           </Button>
         </div>
 
-        <Card className="overflow-hidden border-2 shadow-lg bg-linear-to-br from-card to-card/50">
-          <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        <Card className="from-card to-card/50 overflow-hidden border-2 bg-linear-to-br shadow-lg">
+          <div className="from-primary/5 to-accent/5 pointer-events-none absolute inset-0 bg-linear-to-br via-transparent" />
 
           <CardHeader className="relative z-10 pb-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <CardTitle className="text-3xl font-bold">
-                    {itinerary.title}
-                  </CardTitle>
+                <div className="mb-2 flex items-center gap-3">
+                  <CardTitle className="text-3xl font-bold">{itinerary.title}</CardTitle>
                   <div
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-                      canEdit
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground"
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
+                      canEdit ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {canEdit ? (
                       <>
-                        <Edit className="w-4 h-4" />
+                        <Edit className="h-4 w-4" />
                         <span>Có thể chỉnh sửa</span>
                       </>
                     ) : (
                       <>
-                        <Lock className="w-4 h-4" />
+                        <Lock className="h-4 w-4" />
                         <span>Chỉ đọc</span>
                       </>
                     )}
@@ -150,31 +136,26 @@ export default function SharedItineraryPage() {
               const tripData = itinerary.trip_data;
               const daysCount = tripData?.days?.length || 0;
               const placesCount =
-                tripData?.days?.reduce(
-                  (sum, day) => sum + (day.places?.length || 0),
-                  0
-                ) || 0;
+                tripData?.days?.reduce((sum, day) => sum + (day.places?.length || 0), 0) || 0;
 
               return (
                 (daysCount > 0 || placesCount > 0) && (
                   <div className="flex flex-wrap gap-3">
                     {daysCount > 0 && (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary">
-                        <Clock className="w-5 h-5" />
+                      <div className="bg-primary/10 text-primary flex items-center gap-2 rounded-lg px-4 py-2">
+                        <Clock className="h-5 w-5" />
                         <span className="font-semibold">{daysCount} ngày</span>
                       </div>
                     )}
                     {placesCount > 0 && (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 text-accent">
-                        <MapPin className="w-5 h-5" />
-                        <span className="font-semibold">
-                          {placesCount} điểm đến
-                        </span>
+                      <div className="bg-accent/10 text-accent flex items-center gap-2 rounded-lg px-4 py-2">
+                        <MapPin className="h-5 w-5" />
+                        <span className="font-semibold">{placesCount} điểm đến</span>
                       </div>
                     )}
                     {itinerary.is_public && (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary">
-                        <Globe className="w-5 h-5" />
+                      <div className="bg-secondary flex items-center gap-2 rounded-lg px-4 py-2">
+                        <Globe className="h-5 w-5" />
                         <span className="font-semibold">Công khai</span>
                       </div>
                     )}
@@ -184,23 +165,23 @@ export default function SharedItineraryPage() {
             })()}
 
             {/* Info grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {itinerary.start_date && (
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <Calendar className="w-5 h-5" />
+                <div className="bg-muted/50 flex items-start gap-3 rounded-lg border p-4">
+                  <div className="bg-primary/10 text-primary shrink-0 rounded-lg p-2">
+                    <Calendar className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
                       Ngày bắt đầu
                     </div>
-                    <div className="font-semibold text-lg">
+                    <div className="text-lg font-semibold">
                       {format(new Date(itinerary.start_date), "dd/MM/yyyy", {
                         locale: vi,
                       })}
                     </div>
                     {itinerary.end_date && (
-                      <div className="text-sm text-muted-foreground mt-1">
+                      <div className="text-muted-foreground mt-1 text-sm">
                         →{" "}
                         {format(new Date(itinerary.end_date), "dd/MM/yyyy", {
                           locale: vi,
@@ -211,30 +192,28 @@ export default function SharedItineraryPage() {
                 </div>
               )}
               {itinerary.people_count > 0 && (
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border">
-                  <div className="p-2 rounded-lg bg-accent/10 text-accent shrink-0">
-                    <Users className="w-5 h-5" />
+                <div className="bg-muted/50 flex items-start gap-3 rounded-lg border p-4">
+                  <div className="bg-accent/10 text-accent shrink-0 rounded-lg p-2">
+                    <Users className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
                       Số người
                     </div>
-                    <div className="font-semibold text-lg">
-                      {itinerary.people_count} người
-                    </div>
+                    <div className="text-lg font-semibold">{itinerary.people_count} người</div>
                   </div>
                 </div>
               )}
               {itinerary.total_budget > 0 && (
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border">
-                  <div className="p-2 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 shrink-0">
-                    <DollarSign className="w-5 h-5" />
+                <div className="bg-muted/50 flex items-start gap-3 rounded-lg border p-4">
+                  <div className="shrink-0 rounded-lg bg-green-500/10 p-2 text-green-600 dark:text-green-400">
+                    <DollarSign className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
                       Ngân sách
                     </div>
-                    <div className="font-semibold text-lg">
+                    <div className="text-lg font-semibold">
                       {itinerary.total_budget.toLocaleString("vi-VN")} đ
                     </div>
                   </div>
@@ -242,10 +221,10 @@ export default function SharedItineraryPage() {
               )}
             </div>
 
-            <div className="pt-4 border-t">
+            <div className="border-t pt-4">
               <Button
                 onClick={() => router.push(`/itinerary/${itinerary.id}`)}
-                className="w-full h-12 text-base font-semibold bg-linear-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                className="from-primary to-accent h-12 w-full bg-linear-to-r text-base font-semibold transition-opacity hover:opacity-90"
                 size="lg"
               >
                 {canEdit ? "Mở để chỉnh sửa" : "Xem chi tiết"}

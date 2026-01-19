@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Cloud,
-  CloudRain,
-  Sun,
-  CloudSun,
-  Loader2,
-  Calendar,
-} from "lucide-react";
+import { Cloud, CloudRain, Sun, CloudSun, Loader2, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTripStore } from "@/store/useTripStore";
 
@@ -62,11 +55,7 @@ const formatDate = (dateString: string) => {
   return `${dayName}, ${date.getDate()}/${date.getMonth() + 1}`;
 };
 
-export function WeatherForecast({
-  latitude,
-  longitude,
-  className = "",
-}: WeatherForecastProps) {
+export function WeatherForecast({ latitude, longitude, className = "" }: WeatherForecastProps) {
   const { trip } = useTripStore();
   const [forecast, setForecast] = useState<WeatherForecastData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,9 +86,7 @@ export function WeatherForecast({
       setError(null);
 
       try {
-        const response = await fetch(
-          `/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`
-        );
+        const response = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -125,8 +112,7 @@ export function WeatherForecast({
         setForecast(data);
       } catch (err) {
         console.error("Lỗi khi tải dự báo:", err);
-        const errorMessage =
-          err instanceof Error ? err.message : "Không thể tải dự báo";
+        const errorMessage = err instanceof Error ? err.message : "Không thể tải dự báo";
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -138,19 +124,14 @@ export function WeatherForecast({
 
   // Lọc dự báo để chỉ hiển thị các ngày trong chuyến đi
   const tripDates = new Set(trip.days.map((day) => day.date));
-  const relevantForecast =
-    forecast?.forecast.filter((day) => tripDates.has(day.date)) || [];
+  const relevantForecast = forecast?.forecast.filter((day) => tripDates.has(day.date)) || [];
 
   if (isLoading) {
     return (
-      <div
-        className={`rounded-lg bg-card border border-border p-3 shadow-lg ${className}`}
-      >
+      <div className={`bg-card border-border rounded-lg border p-3 shadow-lg ${className}`}>
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            Đang tải dự báo...
-          </span>
+          <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
+          <span className="text-muted-foreground text-xs">Đang tải dự báo...</span>
         </div>
       </div>
     );
@@ -158,16 +139,12 @@ export function WeatherForecast({
 
   if (error) {
     return (
-      <div
-        className={`rounded-lg bg-card border border-border p-3 shadow-lg ${className}`}
-      >
+      <div className={`bg-card border-border rounded-lg border p-3 shadow-lg ${className}`}>
         <div className="flex items-center gap-2">
-          <Cloud className="h-4 w-4 text-muted-foreground" />
+          <Cloud className="text-muted-foreground h-4 w-4" />
           <div className="flex-1">
-            <p className="text-xs font-medium text-foreground">
-              Dự báo thời tiết
-            </p>
-            <p className="text-[10px] text-muted-foreground">{error}</p>
+            <p className="text-foreground text-xs font-medium">Dự báo thời tiết</p>
+            <p className="text-muted-foreground text-[10px]">{error}</p>
           </div>
         </div>
       </div>
@@ -182,56 +159,48 @@ export function WeatherForecast({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-lg bg-card border border-border shadow-lg ${className}`}
+      className={`bg-card border-border rounded-lg border shadow-lg ${className}`}
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-3 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-t-lg"
+        className="hover:bg-muted/50 flex w-full items-center justify-between rounded-t-lg p-3 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-primary" />
+          <Calendar className="text-primary h-4 w-4" />
           <div className="text-left">
-            <p className="text-xs font-semibold text-foreground">
-              Dự báo thời tiết
-            </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-foreground text-xs font-semibold">Dự báo thời tiết</p>
+            <p className="text-muted-foreground text-[10px]">
               {forecast.city}, {forecast.country}
             </p>
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {relevantForecast.length} ngày
-        </span>
+        <span className="text-muted-foreground text-xs">{relevantForecast.length} ngày</span>
       </button>
 
       {isExpanded && (
-        <div className="border-t border-border p-3 space-y-3 max-h-96 overflow-y-auto">
+        <div className="border-border max-h-96 space-y-3 overflow-y-auto border-t p-3">
           {relevantForecast.map((day) => {
             const WeatherIcon = getWeatherIcon(day.icon);
             return (
               <div
                 key={day.date}
-                className="flex items-center justify-between gap-3 pb-2 border-b border-border last:border-0 last:pb-0"
+                className="border-border flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0"
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <WeatherIcon className="h-5 w-5 text-primary shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-foreground">
-                      {formatDate(day.date)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground capitalize">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <WeatherIcon className="text-primary h-5 w-5 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-foreground text-xs font-medium">{formatDate(day.date)}</p>
+                    <p className="text-muted-foreground text-[10px] capitalize">
                       {day.description}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
                   <div className="text-right">
-                    <p className="text-sm font-bold text-foreground">
+                    <p className="text-foreground text-sm font-bold">
                       {day.maxTemp}°/{day.minTemp}°
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {day.temperature}°C
-                    </p>
+                    <p className="text-muted-foreground text-[10px]">{day.temperature}°C</p>
                   </div>
                 </div>
               </div>

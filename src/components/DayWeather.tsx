@@ -42,7 +42,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
     today.setHours(0, 0, 0, 0);
     targetDate.setHours(0, 0, 0, 0);
     const daysFromToday = Math.floor(
-      (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     // Open-Meteo hỗ trợ dự báo đến 16 ngày, nếu vượt quá thì không gọi API
@@ -56,9 +56,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
       setIsLoading(true);
       setWeather(null);
       try {
-        const response = await fetch(
-          `/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`
-        );
+        const response = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`);
 
         if (!response.ok) {
           return;
@@ -75,7 +73,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
 
         // Tìm thời tiết cho ngày cụ thể này
         const dayWeather = data.forecast.find(
-          (day: ForecastDay) => day.date.split("T")[0] === normalizedDate
+          (day: ForecastDay) => day.date.split("T")[0] === normalizedDate,
         );
 
         if (dayWeather) {
@@ -87,7 +85,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
           today.setHours(0, 0, 0, 0);
           targetDate.setHours(0, 0, 0, 0);
           const daysFromToday = Math.floor(
-            (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+            (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
           );
 
           if (daysFromToday <= 16) {
@@ -98,20 +96,17 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
                 const diff = Math.abs(dayDate.getTime() - targetDate.getTime());
                 if (!closest) return day;
                 const closestDiff = Math.abs(
-                  new Date(closest.date).getTime() - targetDate.getTime()
+                  new Date(closest.date).getTime() - targetDate.getTime(),
                 );
                 return diff < closestDiff ? day : closest;
               },
-              null
+              null,
             );
 
             if (closestWeather) {
               const closestDate = new Date(closestWeather.date);
               const daysDiff = Math.abs(
-                Math.floor(
-                  (closestDate.getTime() - targetDate.getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
+                Math.floor((closestDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24)),
               );
               // Chỉ sử dụng nếu chênh lệch trong vòng 1 ngày
               if (daysDiff <= 1) {
@@ -132,9 +127,9 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-1 mt-0.5">
-        <div className="h-3 w-3 rounded-full bg-muted-foreground/20 animate-pulse" />
-        <span className="text-[10px] text-muted-foreground/50">...</span>
+      <div className="mt-0.5 flex items-center gap-1">
+        <div className="bg-muted-foreground/20 h-3 w-3 animate-pulse rounded-full" />
+        <span className="text-muted-foreground/50 text-[10px]">...</span>
       </div>
     );
   }
@@ -146,7 +141,7 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
     today.setHours(0, 0, 0, 0);
     targetDate.setHours(0, 0, 0, 0);
     const daysFromToday = Math.floor(
-      (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (daysFromToday > 16) {
@@ -156,9 +151,9 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
 
     // Hiển thị placeholder cho các ngày trong phạm vi nhưng không có dữ liệu
     return (
-      <div className="flex items-center gap-1 mt-0.5">
-        <Cloud className="h-3 w-3 text-muted-foreground/30" />
-        <span className="text-[10px] text-muted-foreground/30">--</span>
+      <div className="mt-0.5 flex items-center gap-1">
+        <Cloud className="text-muted-foreground/30 h-3 w-3" />
+        <span className="text-muted-foreground/30 text-[10px]">--</span>
       </div>
     );
   }
@@ -166,9 +161,9 @@ export function DayWeather({ latitude, longitude, date }: DayWeatherProps) {
   const WeatherIcon = getWeatherIcon(weather.icon);
 
   return (
-    <div className="flex items-center gap-1 mt-0.5">
-      <WeatherIcon className="h-3 w-3 text-muted-foreground shrink-0" />
-      <span className="text-[10px] text-muted-foreground">
+    <div className="mt-0.5 flex items-center gap-1">
+      <WeatherIcon className="text-muted-foreground h-3 w-3 shrink-0" />
+      <span className="text-muted-foreground text-[10px]">
         {weather.maxTemp}°/{weather.minTemp}°
       </span>
     </div>

@@ -29,8 +29,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { WeatherForecast } from "./WeatherForecast";
 import type { RouteCacheEntry, RouteCacheMap, RouteProfile } from "@/hooks/useItineraries";
 
-const MAPBOX_TOKEN =
-  process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "YOUR_MAPBOX_ACCESS_TOKEN";
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "YOUR_MAPBOX_ACCESS_TOKEN";
 const DEFAULT_MAPBOX_STYLE =
   process.env.NEXT_PUBLIC_MAPBOX_STYLE ?? "mapbox://styles/mapbox/streets-v12";
 
@@ -67,8 +66,7 @@ export function MapContainer({
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
-  const [isSelectingCustomLocation, setIsSelectingCustomLocation] =
-    useState(false);
+  const [isSelectingCustomLocation, setIsSelectingCustomLocation] = useState(false);
   const [customSelectedLocation, setCustomSelectedLocation] = useState<{
     lat: number;
     lng: number;
@@ -170,16 +168,16 @@ export function MapContainer({
           return DEFAULT_MAPBOX_STYLE;
       }
     }
-    
+
     // Manual theme selection
     if (mapTheme === "light") {
       return DEFAULT_MAPBOX_STYLE;
     }
-    
+
     if (mapTheme === "dark") {
       return "mapbox://styles/mapbox/dark-v11";
     }
-    
+
     return DEFAULT_MAPBOX_STYLE;
   }, [mapTheme, timeOfDay]);
 
@@ -210,18 +208,14 @@ export function MapContainer({
     else currentTimeOfDay = "night";
 
     if (currentStyleName !== newStyleName) {
-      console.log(
-        `Updating map style to ${currentTimeOfDay} mode (${newStyleName})`
-      );
+      console.log(`Updating map style to ${currentTimeOfDay} mode (${newStyleName})`);
       map.setStyle(newStyle);
 
       // Re-add 3D buildings after style change
       map.once("style.load", () => {
         const layers = map.getStyle().layers;
         if (layers) {
-          const firstSymbolLayer = layers.find(
-            (layer) => layer.type === "symbol"
-          );
+          const firstSymbolLayer = layers.find((layer) => layer.type === "symbol");
 
           if (firstSymbolLayer) {
             map.addLayer(
@@ -258,7 +252,7 @@ export function MapContainer({
                   "fill-extrusion-opacity": 0.6,
                 },
               },
-              firstSymbolLayer.id
+              firstSymbolLayer.id,
             );
           }
         }
@@ -368,8 +362,7 @@ export function MapContainer({
     // Allow manual selection if:
     // 1. User clicked "Update location" button (isSelectingLocation = true)
     // 2. OR GPS failed and no position available
-    const shouldAllowManualSelection =
-      isSelectingLocation || (geoError && !position);
+    const shouldAllowManualSelection = isSelectingLocation || (geoError && !position);
 
     if (!shouldAllowManualSelection) {
       return;
@@ -390,14 +383,7 @@ export function MapContainer({
     return () => {
       map.off("click", handleMapClickForLocation);
     };
-  }, [
-    isMapLoaded,
-    useMyLocation,
-    geoError,
-    position,
-    isSelectingLocation,
-    selectedPlaceId,
-  ]);
+  }, [isMapLoaded, useMyLocation, geoError, position, isSelectingLocation, selectedPlaceId]);
 
   const handleUseMyLocationClick = () => {
     const newValue = !useMyLocation;
@@ -464,9 +450,7 @@ export function MapContainer({
         const layers = map.getStyle().layers;
         if (layers) {
           // Find the first symbol layer to insert buildings before it
-          const firstSymbolLayer = layers.find(
-            (layer) => layer.type === "symbol"
-          );
+          const firstSymbolLayer = layers.find((layer) => layer.type === "symbol");
 
           if (firstSymbolLayer) {
             map.addLayer(
@@ -503,7 +487,7 @@ export function MapContainer({
                   "fill-extrusion-opacity": 0.6,
                 },
               },
-              firstSymbolLayer.id
+              firstSymbolLayer.id,
             );
           }
         }
@@ -620,16 +604,14 @@ export function MapContainer({
   const fetchRoute = async (
     coordinates: [number, number][],
     profile: RouteProfile,
-    persistToDb: boolean
+    persistToDb: boolean,
   ) => {
     if (coordinates.length < 2) {
       return null;
     }
 
     // Format coordinates as "lng,lat;lng,lat;..."
-    const coordinatesString = coordinates
-      .map((coord) => `${coord[0]},${coord[1]}`)
-      .join(";");
+    const coordinatesString = coordinates.map((coord) => `${coord[0]},${coord[1]}`).join(";");
 
     // Check cache
     const cacheKey = `${coordinatesString}|${profile}`;
@@ -733,9 +715,7 @@ export function MapContainer({
     }
 
     const placesWithCoords = selectedDay.places.filter(
-      (place) =>
-        typeof place.longitude === "number" &&
-        typeof place.latitude === "number"
+      (place) => typeof place.longitude === "number" && typeof place.latitude === "number",
     );
 
     // Base coordinates from places
@@ -751,10 +731,7 @@ export function MapContainer({
         const { latitude, longitude } = position.coords;
         coords = [[longitude, latitude], ...placeCoords];
       } else if (manualUserLocation) {
-        coords = [
-          [manualUserLocation.lng, manualUserLocation.lat],
-          ...placeCoords,
-        ];
+        coords = [[manualUserLocation.lng, manualUserLocation.lat], ...placeCoords];
       }
     }
 
@@ -769,17 +746,13 @@ export function MapContainer({
 
     // Add markers for each place
     selectedDay.places.forEach((place) => {
-      if (
-        typeof place.longitude === "number" &&
-        typeof place.latitude === "number"
-      ) {
+      if (typeof place.longitude === "number" && typeof place.latitude === "number") {
         const el = document.createElement("div");
         el.className = "marker";
         el.style.width = "24px";
         el.style.height = "24px";
         el.style.borderRadius = "50%";
-        el.style.backgroundColor =
-          place.id === selectedPlaceId ? "#0ea5e9" : "#10b981";
+        el.style.backgroundColor = place.id === selectedPlaceId ? "#0ea5e9" : "#10b981";
         el.style.border = "3px solid white";
         el.style.cursor = "pointer";
         el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
@@ -880,7 +853,7 @@ export function MapContainer({
                   "line-opacity": 0.5,
                 },
               },
-              sourceId
+              sourceId,
             ); // Insert before the main route layer
           } else {
             // Update existing source
@@ -916,14 +889,8 @@ export function MapContainer({
     if (!map || !isMapLoaded || !selectedDay || !selectedPlaceId) {
       return;
     }
-    const place = selectedDay.places.find(
-      (item) => item.id === selectedPlaceId
-    );
-    if (
-      !place ||
-      typeof place.longitude !== "number" ||
-      typeof place.latitude !== "number"
-    ) {
+    const place = selectedDay.places.find((item) => item.id === selectedPlaceId);
+    if (!place || typeof place.longitude !== "number" || typeof place.latitude !== "number") {
       return;
     }
     map.flyTo({
@@ -958,19 +925,15 @@ export function MapContainer({
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 bg-slate-100">
-      <div
-        ref={mapContainerRef}
-        className="h-full w-full"
-        style={{ pointerEvents: "auto" }}
-      />
+      <div ref={mapContainerRef} className="h-full w-full" style={{ pointerEvents: "auto" }} />
       {!isMapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted pointer-events-none">
-          <div className="text-sm text-muted-foreground">Loading map...</div>
+        <div className="bg-muted pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="text-muted-foreground text-sm">Loading map...</div>
         </div>
       )}
       {/* Place selection banner */}
       {isMapLoaded && selectedPlaceId && selectedDay && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-lg pointer-events-auto animate-pulse">
+        <div className="bg-primary text-primary-foreground pointer-events-auto absolute top-3 left-1/2 z-20 flex -translate-x-1/2 animate-pulse items-center gap-2 rounded-full px-4 py-2 text-xs font-medium shadow-lg">
           <span className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5" />
             Nhấp vào bản đồ để đặt vị trí cho &quot;
@@ -983,7 +946,7 @@ export function MapContainer({
               e.stopPropagation();
               selectPlace(undefined);
             }}
-            className="ml-2 rounded-full bg-white/20 p-1 hover:bg-white/30 transition"
+            className="ml-2 rounded-full bg-white/20 p-1 transition hover:bg-white/30"
             title="Bỏ chọn để có thể kéo xem bản đồ"
           >
             <X className="h-3 w-3" />
@@ -1002,17 +965,11 @@ export function MapContainer({
             className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
               useMyLocation
                 ? "bg-primary text-primary-foreground"
-                : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
             }`}
-            title={
-              useMyLocation
-                ? "Tắt theo dõi vị trí của tôi"
-                : "Dùng vị trí hiện tại của tôi"
-            }
+            title={useMyLocation ? "Tắt theo dõi vị trí của tôi" : "Dùng vị trí hiện tại của tôi"}
           >
-            <LocateFixed
-              className={`h-4 w-4 ${useMyLocation ? "animate-pulse" : ""}`}
-            />
+            <LocateFixed className={`h-4 w-4 ${useMyLocation ? "animate-pulse" : ""}`} />
             <span>{useMyLocation ? "Đang dùng vị trí" : "Vị trí của tôi"}</span>
           </button>
 
@@ -1027,21 +984,17 @@ export function MapContainer({
             className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
               isSelectingCustomLocation || customSelectedLocation
                 ? "bg-primary text-primary-foreground"
-                : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
             }`}
             title="Chọn vị trí cụ thể trên bản đồ"
           >
-            <Crosshair
-              className={`h-4 w-4 ${
-                isSelectingCustomLocation ? "animate-pulse" : ""
-              }`}
-            />
+            <Crosshair className={`h-4 w-4 ${isSelectingCustomLocation ? "animate-pulse" : ""}`} />
             <span>
               {isSelectingCustomLocation
                 ? "Đang chọn..."
                 : customSelectedLocation
-                ? "Vị trí đã chọn"
-                : "Chọn vị trí"}
+                  ? "Vị trí đã chọn"
+                  : "Chọn vị trí"}
             </span>
           </button>
 
@@ -1054,7 +1007,7 @@ export function MapContainer({
                 setCustomSelectedLocation(null);
                 setIsSelectingCustomLocation(false);
               }}
-              className="flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+              className="bg-card/95 text-foreground hover:bg-card flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg backdrop-blur-sm transition"
               title="Xóa vị trí đã chọn"
             >
               <X className="h-4 w-4" />
@@ -1074,18 +1027,12 @@ export function MapContainer({
                 className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                   isSelectingLocation
                     ? "bg-accent text-accent-foreground animate-pulse"
-                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
                 }`}
                 title="Cập nhật vị trí của bạn trên bản đồ"
               >
-                <RefreshCw
-                  className={`h-4 w-4 ${
-                    isSelectingLocation ? "animate-spin" : ""
-                  }`}
-                />
-                <span>
-                  {isSelectingLocation ? "Đang chọn..." : "Cập nhật vị trí"}
-                </span>
+                <RefreshCw className={`h-4 w-4 ${isSelectingLocation ? "animate-spin" : ""}`} />
+                <span>{isSelectingLocation ? "Đang chọn..." : "Cập nhật vị trí"}</span>
               </button>
 
               {/* Nearby places button */}
@@ -1098,21 +1045,19 @@ export function MapContainer({
                 className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                   showNearbyPlaces
                     ? "bg-primary text-primary-foreground"
-                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
                 }`}
                 title="Xem địa điểm xung quanh"
               >
                 <Sparkles className="h-4 w-4" />
-                <span>
-                  {showNearbyPlaces ? "Ẩn gợi ý" : "Địa điểm gần đây"}
-                </span>
+                <span>{showNearbyPlaces ? "Ẩn gợi ý" : "Địa điểm gần đây"}</span>
               </button>
             </>
           )}
           {/* Selection mode indicator */}
           {isSelectingLocation && (
-            <div className="mt-2 rounded-lg bg-accent/90 text-accent-foreground px-3 py-2 text-xs shadow-lg max-w-xs animate-pulse">
-              <div className="font-medium mb-1">📍 Chọn vị trí của bạn</div>
+            <div className="bg-accent/90 text-accent-foreground mt-2 max-w-xs animate-pulse rounded-lg px-3 py-2 text-xs shadow-lg">
+              <div className="mb-1 font-medium">📍 Chọn vị trí của bạn</div>
               <div className="text-[10px] opacity-90">
                 Nhấp vào bản đồ để cập nhật vị trí hiện tại
               </div>
@@ -1121,8 +1066,8 @@ export function MapContainer({
 
           {/* Custom location selection indicator */}
           {isSelectingCustomLocation && (
-            <div className="mt-2 rounded-lg bg-primary/90 text-primary-foreground px-3 py-2 text-xs shadow-lg max-w-xs animate-pulse">
-              <div className="font-medium mb-1">🎯 Chọn vị trí trên bản đồ</div>
+            <div className="bg-primary/90 text-primary-foreground mt-2 max-w-xs animate-pulse rounded-lg px-3 py-2 text-xs shadow-lg">
+              <div className="mb-1 font-medium">🎯 Chọn vị trí trên bản đồ</div>
               <div className="text-[10px] opacity-90">
                 Nhấp vào bản đồ để chọn vị trí và tìm địa điểm xung quanh
               </div>
@@ -1140,32 +1085,27 @@ export function MapContainer({
               className={`mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
                 showNearbyPlaces
                   ? "bg-primary text-primary-foreground"
-                  : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                  : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
               }`}
               title="Xem địa điểm xung quanh vị trí đã chọn"
             >
               <Sparkles className="h-4 w-4" />
-              <span>
-                {showNearbyPlaces ? "Ẩn địa điểm" : "Xem địa điểm xung quanh"}
-              </span>
+              <span>{showNearbyPlaces ? "Ẩn địa điểm" : "Xem địa điểm xung quanh"}</span>
             </button>
           )}
 
           {/* GPS error message */}
           {useMyLocation && geoError && !position && !isSelectingLocation && (
-            <div className="mt-2 rounded-lg bg-destructive/90 text-destructive-foreground px-3 py-2 text-xs shadow-lg max-w-xs">
-              <div className="font-medium mb-1">
-                ⚠️ Không thể track vị trí thực tế
-              </div>
+            <div className="bg-destructive/90 text-destructive-foreground mt-2 max-w-xs rounded-lg px-3 py-2 text-xs shadow-lg">
+              <div className="mb-1 font-medium">⚠️ Không thể track vị trí thực tế</div>
               <div className="mb-2 text-[11px]">{geoError}</div>
-              <div className="text-[10px] opacity-90 mb-2 space-y-1">
+              <div className="mb-2 space-y-1 text-[10px] opacity-90">
                 <div>
-                  💡 <strong>Giải pháp:</strong> Nhấp vào bản đồ để đặt điểm
-                  xuất phát thủ công.
+                  💡 <strong>Giải pháp:</strong> Nhấp vào bản đồ để đặt điểm xuất phát thủ công.
                 </div>
               </div>
               {manualUserLocation && (
-                <div className="text-[10px] opacity-80 border-t border-destructive-foreground/20 pt-2 mt-2">
+                <div className="border-destructive-foreground/20 mt-2 border-t pt-2 text-[10px] opacity-80">
                   ✅ Đã đặt: {manualUserLocation.lat.toFixed(4)},{" "}
                   {manualUserLocation.lng.toFixed(4)}
                 </div>
@@ -1194,15 +1134,9 @@ export function MapContainer({
 
           return (
             <div className="absolute top-47 left-3 z-20 flex flex-col gap-2">
-              <WeatherWidget
-                latitude={weatherLocation.lat}
-                longitude={weatherLocation.lng}
-              />
+              <WeatherWidget latitude={weatherLocation.lat} longitude={weatherLocation.lng} />
               {trip.days.length > 0 && (
-                <WeatherForecast
-                  latitude={weatherLocation.lat}
-                  longitude={weatherLocation.lng}
-                />
+                <WeatherForecast latitude={weatherLocation.lat} longitude={weatherLocation.lng} />
               )}
             </div>
           );
@@ -1213,17 +1147,13 @@ export function MapContainer({
         selectedDay &&
         (() => {
           const placesWithCoords = selectedDay.places.filter(
-            (place) =>
-              typeof place.longitude === "number" &&
-              typeof place.latitude === "number"
+            (place) => typeof place.longitude === "number" && typeof place.latitude === "number",
           );
 
           // Check if route includes user location
-          const hasUserLocation =
-            useMyLocation && (!!position || !!manualUserLocation);
+          const hasUserLocation = useMyLocation && (!!position || !!manualUserLocation);
           const hasRoute =
-            (hasUserLocation && placesWithCoords.length >= 1) ||
-            placesWithCoords.length >= 2;
+            (hasUserLocation && placesWithCoords.length >= 1) || placesWithCoords.length >= 2;
 
           if (!hasRoute) return null;
 
@@ -1236,20 +1166,16 @@ export function MapContainer({
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-lg transition ${
                   is3DMode
                     ? "bg-primary text-primary-foreground"
-                    : "bg-card/95 backdrop-blur-sm text-foreground hover:bg-card"
+                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
                 }`}
                 title={is3DMode ? "Tắt chế độ 3D" : "Bật chế độ 3D"}
               >
-                {is3DMode ? (
-                  <MapIcon className="h-4 w-4" />
-                ) : (
-                  <Box className="h-4 w-4" />
-                )}
+                {is3DMode ? <MapIcon className="h-4 w-4" /> : <Box className="h-4 w-4" />}
                 <span>{is3DMode ? "2D" : "3D"}</span>
               </button>
 
               {/* Map Theme Selector */}
-              <div className="flex items-center gap-1 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
+              <div className="bg-card/95 flex items-center gap-1 overflow-hidden rounded-lg shadow-lg backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => setMapTheme("light")}
@@ -1288,7 +1214,7 @@ export function MapContainer({
                 </button>
               </div>
 
-              <div className="flex items-center gap-1 rounded-lg bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
+              <div className="bg-card/95 flex items-center gap-1 overflow-hidden rounded-lg shadow-lg backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => setRouteProfile("driving")}
@@ -1329,19 +1255,17 @@ export function MapContainer({
 
               {/* Route Info */}
               {formatRouteInfo && (
-                <div className="rounded-lg bg-card/95 backdrop-blur-sm px-3 py-2 text-xs text-foreground shadow-lg">
+                <div className="bg-card/95 text-foreground rounded-lg px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-2">
-                    <Route className="h-4 w-4 text-primary" />
+                    <Route className="text-primary h-4 w-4" />
                     <div className="flex-1">
                       {hasUserLocation && (
-                        <div className="text-[10px] text-primary font-medium mb-0.5">
+                        <div className="text-primary mb-0.5 text-[10px] font-medium">
                           📍 Từ vị trí của bạn
                         </div>
                       )}
-                      <div className="font-medium">
-                        {formatRouteInfo.distance}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="font-medium">{formatRouteInfo.distance}</div>
+                      <div className="text-muted-foreground text-[10px]">
                         {formatRouteInfo.duration}
                       </div>
                     </div>
@@ -1350,7 +1274,7 @@ export function MapContainer({
               )}
 
               {isLoadingRoute && (
-                <div className="rounded-lg bg-card/95 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground shadow-lg">
+                <div className="bg-card/95 text-muted-foreground rounded-lg px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Đang tính toán đường đi...</span>
@@ -1362,22 +1286,20 @@ export function MapContainer({
         })()}
 
       {isMapLoaded && !selectedPlaceId && (
-        <div className="absolute bottom-3 left-3 z-20 rounded-lg bg-card/90 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground shadow-md pointer-events-none">
+        <div className="bg-card/90 text-muted-foreground pointer-events-none absolute bottom-3 left-3 z-20 rounded-lg px-3 py-2 text-xs shadow-md backdrop-blur-sm">
           💡 Mẹo: Chọn một địa điểm, sau đó nhấp vào bản đồ để đặt vị trí
         </div>
       )}
 
       {/* Nearby Places Panel for Custom Selected Location */}
-      {showNearbyPlaces &&
-        customSelectedLocation &&
-        !showNearbyPlacesForPlaceId && (
-          <NearbyPlaces
-            latitude={customSelectedLocation.lat}
-            longitude={customSelectedLocation.lng}
-            radius={10000}
-            onClose={() => setShowNearbyPlaces(false)}
-          />
-        )}
+      {showNearbyPlaces && customSelectedLocation && !showNearbyPlacesForPlaceId && (
+        <NearbyPlaces
+          latitude={customSelectedLocation.lat}
+          longitude={customSelectedLocation.lng}
+          radius={10000}
+          onClose={() => setShowNearbyPlaces(false)}
+        />
+      )}
 
       {/* Nearby Places Panel for User Location */}
       {showNearbyPlaces &&
@@ -1385,12 +1307,8 @@ export function MapContainer({
         (position || manualUserLocation) &&
         !showNearbyPlacesForPlaceId && (
           <NearbyPlaces
-            latitude={
-              position ? position.coords.latitude : manualUserLocation!.lat
-            }
-            longitude={
-              position ? position.coords.longitude : manualUserLocation!.lng
-            }
+            latitude={position ? position.coords.latitude : manualUserLocation!.lat}
+            longitude={position ? position.coords.longitude : manualUserLocation!.lng}
             radius={10000}
             onClose={() => setShowNearbyPlaces(false)}
           />
@@ -1399,9 +1317,7 @@ export function MapContainer({
       {/* Nearby Places Panel for Selected Place */}
       {showNearbyPlacesForPlaceId &&
         (() => {
-          const place = selectedDay?.places.find(
-            (p) => p.id === showNearbyPlacesForPlaceId
-          );
+          const place = selectedDay?.places.find((p) => p.id === showNearbyPlacesForPlaceId);
           if (place?.latitude && place?.longitude) {
             return (
               <NearbyPlaces

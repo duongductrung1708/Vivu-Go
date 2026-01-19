@@ -34,7 +34,7 @@ export function ScrollToTopButton() {
       variant="outline"
       size="icon"
       onClick={handleClick}
-      className="fixed bottom-6 right-4 z-40 rounded-full bg-background/80 backdrop-blur border border-border shadow-md hover:shadow-lg transition-opacity duration-200"
+      className="bg-background/80 border-border fixed right-4 bottom-6 z-40 rounded-full border shadow-md backdrop-blur transition-opacity duration-200 hover:shadow-lg"
     >
       <ArrowUp className="h-4 w-4" />
       <span className="sr-only">Scroll to top</span>

@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Cloud,
-  CloudRain,
-  Sun,
-  CloudSun,
-  Loader2,
-  Calendar,
-} from "lucide-react";
+import { Cloud, CloudRain, Sun, CloudSun, Loader2, Calendar } from "lucide-react";
 
 type ForecastDay = {
   date: string;
@@ -52,12 +45,7 @@ const formatDate = (dateString: string) => {
   return `${dayName}, ${date.getDate()}/${date.getMonth() + 1}`;
 };
 
-export function WeatherPreview({
-  latitude,
-  longitude,
-  startDate,
-  endDate,
-}: WeatherPreviewProps) {
+export function WeatherPreview({ latitude, longitude, startDate, endDate }: WeatherPreviewProps) {
   const [forecast, setForecast] = useState<ForecastDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,9 +80,7 @@ export function WeatherPreview({
       setError(null);
 
       try {
-        const response = await fetch(
-          `/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`
-        );
+        const response = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}&type=forecast`);
 
         if (!response.ok) {
           throw new Error("Không thể tải dự báo");
@@ -129,7 +115,7 @@ export function WeatherPreview({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-sky-50 px-3 py-2 text-xs text-sky-700 flex items-center gap-2">
+      <div className="flex items-center gap-2 rounded-2xl bg-sky-50 px-3 py-2 text-xs text-sky-700">
         <Loader2 className="h-3 w-3 animate-spin" />
         <span>Đang tải dự báo thời tiết...</span>
       </div>
@@ -137,11 +123,7 @@ export function WeatherPreview({
   }
 
   if (error) {
-    return (
-      <div className="rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-700">
-        ⚠️ {error}
-      </div>
-    );
+    return <div className="rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-700">⚠️ {error}</div>;
   }
 
   if (forecast.length === 0) {
@@ -150,7 +132,7 @@ export function WeatherPreview({
 
   return (
     <div className="rounded-2xl bg-sky-50 px-3 py-2 text-xs text-sky-700">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-2 flex items-center gap-2">
         <Calendar className="h-3.5 w-3.5" />
         <span className="font-medium">Dự báo thời tiết</span>
       </div>
@@ -158,18 +140,13 @@ export function WeatherPreview({
         {forecast.slice(0, 3).map((day) => {
           const WeatherIcon = getWeatherIcon(day.icon);
           return (
-            <div
-              key={day.date}
-              className="flex items-center justify-between gap-2"
-            >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <WeatherIcon className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+            <div key={day.date} className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <WeatherIcon className="h-3.5 w-3.5 shrink-0 text-sky-600" />
                 <span className="font-medium">{formatDate(day.date)}</span>
-                <span className="text-sky-600/70 truncate">
-                  {day.description}
-                </span>
+                <span className="truncate text-sky-600/70">{day.description}</span>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex shrink-0 items-center gap-1">
                 <span className="font-semibold">{day.maxTemp}°</span>
                 <span className="text-sky-600/70">/{day.minTemp}°</span>
               </div>
@@ -177,9 +154,7 @@ export function WeatherPreview({
           );
         })}
         {forecast.length > 3 && (
-          <div className="text-sky-600/70 pt-1">
-            +{forecast.length - 3} ngày khác
-          </div>
+          <div className="pt-1 text-sky-600/70">+{forecast.length - 3} ngày khác</div>
         )}
       </div>
     </div>

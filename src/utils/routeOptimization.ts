@@ -8,10 +8,7 @@ type Coordinate = [number, number]; // [lng, lat]
  * Calculate distance between two coordinates using Haversine formula (great circle distance)
  * Returns distance in meters
  */
-export function calculateHaversineDistance(
-  coord1: Coordinate,
-  coord2: Coordinate
-): number {
+export function calculateHaversineDistance(coord1: Coordinate, coord2: Coordinate): number {
   const [lng1, lat1] = coord1;
   const [lng2, lat2] = coord2;
 
@@ -34,7 +31,7 @@ export function calculateHaversineDistance(
  */
 export async function calculateDistanceMatrix(
   coordinates: Coordinate[],
-  profile: "driving" | "walking" | "cycling" = "driving"
+  profile: "driving" | "walking" | "cycling" = "driving",
 ): Promise<number[][] | null> {
   if (coordinates.length < 2 || !MAPBOX_TOKEN) {
     return null;
@@ -47,9 +44,7 @@ export async function calculateDistanceMatrix(
       return calculateHaversineMatrix(coordinates);
     }
 
-    const coordinatesString = coordinates
-      .map((coord) => `${coord[0]},${coord[1]}`)
-      .join(";");
+    const coordinatesString = coordinates.map((coord) => `${coord[0]},${coord[1]}`).join(";");
 
     const url = `https://api.mapbox.com/directions-matrix/v1/mapbox/${profile}/${coordinatesString}?access_token=${MAPBOX_TOKEN}&annotations=distance,duration`;
 
@@ -82,10 +77,7 @@ function calculateHaversineMatrix(coordinates: Coordinate[]): number[][] {
       if (i === j) {
         matrix[i][j] = 0;
       } else {
-        matrix[i][j] = calculateHaversineDistance(
-          coordinates[i],
-          coordinates[j]
-        );
+        matrix[i][j] = calculateHaversineDistance(coordinates[i], coordinates[j]);
       }
     }
   }
@@ -99,7 +91,7 @@ function calculateHaversineMatrix(coordinates: Coordinate[]): number[][] {
  */
 export function optimizeRouteNearestNeighbor(
   distanceMatrix: number[][],
-  startIndex: number = 0
+  startIndex: number = 0,
 ): number[] {
   const n = distanceMatrix.length;
   if (n <= 1) return [0];
@@ -137,10 +129,7 @@ export function optimizeRouteNearestNeighbor(
  * Optimize route using 2-opt algorithm (improves on nearest neighbor)
  * Returns optimized order of place indices
  */
-export function optimizeRoute2Opt(
-  distanceMatrix: number[][],
-  initialRoute: number[]
-): number[] {
+export function optimizeRoute2Opt(distanceMatrix: number[][], initialRoute: number[]): number[] {
   const n = distanceMatrix.length;
   if (n <= 2) return initialRoute;
 
@@ -154,22 +143,16 @@ export function optimizeRoute2Opt(
       for (let j = i + 2; j < n; j++) {
         // Calculate current distance
         const currentDistance =
-          distanceMatrix[route[i]][route[i + 1]] +
-          distanceMatrix[route[j]][route[(j + 1) % n]];
+          distanceMatrix[route[i]][route[i + 1]] + distanceMatrix[route[j]][route[(j + 1) % n]];
 
         // Calculate new distance after swapping
         const newDistance =
-          distanceMatrix[route[i]][route[j]] +
-          distanceMatrix[route[i + 1]][route[(j + 1) % n]];
+          distanceMatrix[route[i]][route[j]] + distanceMatrix[route[i + 1]][route[(j + 1) % n]];
 
         if (newDistance < currentDistance) {
           // Reverse the segment between i+1 and j
           const segment = route.slice(i + 1, j + 1).reverse();
-          route = [
-            ...route.slice(0, i + 1),
-            ...segment,
-            ...route.slice(j + 1),
-          ];
+          route = [...route.slice(0, i + 1), ...segment, ...route.slice(j + 1)];
           improved = true;
         }
       }
@@ -182,10 +165,7 @@ export function optimizeRoute2Opt(
 /**
  * Calculate total distance for a route
  */
-export function calculateRouteDistance(
-  route: number[],
-  distanceMatrix: number[][]
-): number {
+export function calculateRouteDistance(route: number[], distanceMatrix: number[][]): number {
   let totalDistance = 0;
   for (let i = 0; i < route.length - 1; i++) {
     totalDistance += distanceMatrix[route[i]][route[i + 1]];
@@ -199,7 +179,7 @@ export function calculateRouteDistance(
  */
 export async function optimizePlacesOrder(
   places: Place[],
-  profile: "driving" | "walking" | "cycling" = "driving"
+  profile: "driving" | "walking" | "cycling" = "driving",
 ): Promise<{
   optimizedPlaces: Place[];
   totalDistance: number; // in meters
@@ -207,8 +187,7 @@ export async function optimizePlacesOrder(
 } | null> {
   // Filter places with coordinates
   const placesWithCoords = places.filter(
-    (place) =>
-      typeof place.latitude === "number" && typeof place.longitude === "number"
+    (place) => typeof place.latitude === "number" && typeof place.longitude === "number",
   );
 
   if (placesWithCoords.length < 2) {
@@ -237,9 +216,7 @@ export async function optimizePlacesOrder(
 
   // Add places without coordinates at the end (preserving their relative order)
   const placesWithoutCoords = places.filter(
-    (place) =>
-      typeof place.latitude !== "number" ||
-      typeof place.longitude !== "number"
+    (place) => typeof place.latitude !== "number" || typeof place.longitude !== "number",
   );
   optimizedPlaces.push(...placesWithoutCoords);
 

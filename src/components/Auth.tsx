@@ -7,13 +7,7 @@ import { MapPin, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -49,8 +43,8 @@ function AuthContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-primary text-xl">Đang tải...</div>
+      <div className="bg-background flex min-h-screen items-center justify-center">
+        <div className="text-primary animate-pulse text-xl">Đang tải...</div>
       </div>
     );
   }
@@ -130,20 +124,20 @@ function AuthContent() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-secondary via-background to-lavender flex items-center justify-center p-4">
+    <div className="from-secondary via-background to-lavender flex min-h-screen items-center justify-center bg-linear-to-br p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="border-0 shadow-2xl bg-card/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-2">
+        <Card className="bg-card/80 border-0 shadow-2xl backdrop-blur-sm">
+          <CardHeader className="pb-2 text-center">
             <motion.div
-              className="mx-auto mb-4 w-16 h-16 bg-linear-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg"
+              className="from-primary to-accent mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg"
               whileHover={{ scale: 1.05, rotate: 5 }}
             >
-              <MapPin className="w-8 h-8 text-white" />
+              <MapPin className="h-8 w-8 text-white" />
             </motion.div>
             <CardTitle className="text-2xl font-bold">
               {isLogin ? "Chào mừng trở lại!" : "Tạo tài khoản mới"}
@@ -160,7 +154,7 @@ function AuthContent() {
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Họ và tên</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <User className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                     <Input
                       id="fullName"
                       placeholder="Nguyễn Văn A"
@@ -169,16 +163,14 @@ function AuthContent() {
                       className="pl-10"
                     />
                   </div>
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name}</p>
-                  )}
+                  {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
                 </div>
               )}
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="email"
                     type="email"
@@ -188,15 +180,13 @@ function AuthContent() {
                     className="pl-10"
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Mật khẩu</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Lock className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="password"
                     type="password"
@@ -206,14 +196,12 @@ function AuthContent() {
                     className="pl-10"
                   />
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-linear-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                className="from-primary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90"
                 disabled={loading}
               >
                 {loading ? (
@@ -221,14 +209,14 @@ function AuthContent() {
                 ) : (
                   <>
                     {isLogin ? "Đăng nhập" : "Đăng ký"}
-                    <ArrowRight className="ml-2 w-4 h-4" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}
                 <button
                   type="button"
@@ -236,7 +224,7 @@ function AuthContent() {
                     setIsLogin(!isLogin);
                     setErrors({});
                   }}
-                  className="ml-1 text-primary font-medium hover:underline"
+                  className="text-primary ml-1 font-medium hover:underline"
                 >
                   {isLogin ? "Đăng ký ngay" : "Đăng nhập"}
                 </button>
@@ -251,11 +239,13 @@ function AuthContent() {
 
 export default function Auth() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-primary text-xl">Đang tải...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="bg-background flex min-h-screen items-center justify-center">
+          <div className="text-primary animate-pulse text-xl">Đang tải...</div>
+        </div>
+      }
+    >
       <AuthContent />
     </Suspense>
   );

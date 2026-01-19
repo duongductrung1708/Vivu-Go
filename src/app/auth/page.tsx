@@ -9,11 +9,13 @@ export const dynamic = "force-dynamic";
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loading />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="bg-background flex min-h-screen items-center justify-center">
+          <Loading />
+        </div>
+      }
+    >
       <Auth />
     </Suspense>
   );

@@ -47,23 +47,15 @@ interface ItineraryShareDialogProps {
   children: React.ReactNode;
 }
 
-export function ItineraryShareDialog({
-  itineraryId,
-  children,
-}: ItineraryShareDialogProps) {
+export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDialogProps) {
   const [open, setOpen] = useState(false);
   const [expirationDays, setExpirationDays] = useState<string>("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [invitePermission, setInvitePermission] = useState<"read" | "edit">(
-    "read"
-  );
+  const [invitePermission, setInvitePermission] = useState<"read" | "edit">("read");
   const [deleteShareDialogOpen, setDeleteShareDialogOpen] = useState(false);
-  const [removeCollaboratorDialogOpen, setRemoveCollaboratorDialogOpen] =
-    useState(false);
+  const [removeCollaboratorDialogOpen, setRemoveCollaboratorDialogOpen] = useState(false);
   const [shareToDelete, setShareToDelete] = useState<string | null>(null);
-  const [collaboratorToRemove, setCollaboratorToRemove] = useState<
-    string | null
-  >(null);
+  const [collaboratorToRemove, setCollaboratorToRemove] = useState<string | null>(null);
   const [collaboratorStatus, setCollaboratorStatus] = useState<
     "pending" | "accepted" | "declined" | null
   >(null);
@@ -73,11 +65,7 @@ export function ItineraryShareDialog({
   const { data: collaborators } = useItineraryCollaborators(itineraryId);
 
   // Debug: Log collaborators data to help diagnose "Unknown" issue
-  if (
-    collaborators &&
-    collaborators.length > 0 &&
-    process.env.NODE_ENV === "development"
-  ) {
+  if (collaborators && collaborators.length > 0 && process.env.NODE_ENV === "development") {
     console.log("Collaborators data:", collaborators);
     collaborators.forEach((collab, index) => {
       console.log(`Collaborator ${index}:`, {
@@ -98,9 +86,7 @@ export function ItineraryShareDialog({
   const handleCreateShare = async (permission: "read" | "edit") => {
     try {
       const expiresAt = expirationDays
-        ? new Date(
-            Date.now() + parseInt(expirationDays) * 24 * 60 * 60 * 1000
-          ).toISOString()
+        ? new Date(Date.now() + parseInt(expirationDays) * 24 * 60 * 60 * 1000).toISOString()
         : undefined;
 
       await createShare.mutateAsync({
@@ -180,8 +166,7 @@ export function ItineraryShareDialog({
       });
       setInviteEmail("");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Không thể gửi lời mời.";
+      const errorMessage = error instanceof Error ? error.message : "Không thể gửi lời mời.";
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -192,7 +177,7 @@ export function ItineraryShareDialog({
 
   const handleRemoveCollaboratorClick = (
     collaborationId: string,
-    status: "pending" | "accepted" | "declined"
+    status: "pending" | "accepted" | "declined",
   ) => {
     setCollaboratorToRemove(collaborationId);
     setCollaboratorStatus(status);
@@ -210,9 +195,7 @@ export function ItineraryShareDialog({
       toast({
         title: "Đã xóa",
         description:
-          collaboratorStatus === "pending"
-            ? "Đã hủy lời mời cộng tác."
-            : "Đã xóa người cộng tác.",
+          collaboratorStatus === "pending" ? "Đã hủy lời mời cộng tác." : "Đã xóa người cộng tác.",
       });
       setRemoveCollaboratorDialogOpen(false);
       setCollaboratorToRemove(null);
@@ -263,14 +246,14 @@ export function ItineraryShareDialog({
                 originalOnClick(e);
               }
             },
-          }
+          },
         )
       ) : (
         <div onClick={() => setOpen(true)}>{children}</div>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-w-2xl max-h-[80vh] overflow-y-auto"
+          className="max-h-[80vh] max-w-2xl overflow-y-auto"
           onClick={(e) => {
             e.stopPropagation();
             e.nativeEvent.stopImmediatePropagation();
@@ -296,9 +279,7 @@ export function ItineraryShareDialog({
           >
             <DialogHeader>
               <DialogTitle>Chia sẻ lịch trình</DialogTitle>
-              <DialogDescription>
-                Tạo link chia sẻ hoặc mời người khác cộng tác
-              </DialogDescription>
+              <DialogDescription>Tạo link chia sẻ hoặc mời người khác cộng tác</DialogDescription>
             </DialogHeader>
 
             <Tabs defaultValue="link" className="mt-4">
@@ -309,7 +290,7 @@ export function ItineraryShareDialog({
 
               <TabsContent value="link" className="space-y-4">
                 {/* Create new share link */}
-                <div className="space-y-4 p-4 border rounded-lg">
+                <div className="space-y-4 rounded-lg border p-4">
                   <div className="space-y-2">
                     <Label>Thời hạn link (tùy chọn)</Label>
                     <div className="flex gap-2">
@@ -346,46 +327,35 @@ export function ItineraryShareDialog({
                       {shares.map((share) => {
                         const shareUrl = `${window.location.origin}/share/${share.share_token}`;
                         const isExpired =
-                          share.expires_at &&
-                          new Date(share.expires_at) < new Date();
+                          share.expires_at && new Date(share.expires_at) < new Date();
 
                         return (
                           <div
                             key={share.id}
-                            className="flex items-center justify-between p-3 border rounded-lg"
+                            className="flex items-center justify-between rounded-lg border p-3"
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1 flex items-center gap-2">
                                 <span className="text-sm font-medium">
-                                  {share.permission === "edit"
-                                    ? "Chỉnh sửa"
-                                    : "Đọc"}
+                                  {share.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
                                 </span>
                                 {isExpired && (
-                                  <span className="text-xs text-destructive">
-                                    Đã hết hạn
-                                  </span>
+                                  <span className="text-destructive text-xs">Đã hết hạn</span>
                                 )}
                                 {!share.is_active && (
-                                  <span className="text-xs text-muted-foreground">
-                                    Đã tắt
-                                  </span>
+                                  <span className="text-muted-foreground text-xs">Đã tắt</span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Link2 className="w-3 h-3" />
+                              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                <Link2 className="h-3 w-3" />
                                 <span className="truncate">{shareUrl}</span>
                               </div>
                               {share.expires_at && (
-                                <div className="text-xs text-muted-foreground mt-1">
+                                <div className="text-muted-foreground mt-1 text-xs">
                                   Hết hạn:{" "}
-                                  {format(
-                                    new Date(share.expires_at),
-                                    "dd/MM/yyyy",
-                                    {
-                                      locale: vi,
-                                    }
-                                  )}
+                                  {format(new Date(share.expires_at), "dd/MM/yyyy", {
+                                    locale: vi,
+                                  })}
                                 </div>
                               )}
                             </div>
@@ -393,18 +363,16 @@ export function ItineraryShareDialog({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() =>
-                                  handleCopyLink(share.share_token)
-                                }
+                                onClick={() => handleCopyLink(share.share_token)}
                               >
-                                <Copy className="w-4 h-4" />
+                                <Copy className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDeleteShareClick(share.id)}
                               >
-                                <X className="w-4 h-4" />
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
@@ -412,7 +380,7 @@ export function ItineraryShareDialog({
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
+                    <p className="text-muted-foreground py-4 text-center text-sm">
                       Chưa có link chia sẻ nào
                     </p>
                   )}
@@ -421,7 +389,7 @@ export function ItineraryShareDialog({
 
               <TabsContent value="collaborators" className="space-y-4">
                 {/* Invite collaborator */}
-                <div className="space-y-4 p-4 border rounded-lg">
+                <div className="space-y-4 rounded-lg border p-4">
                   <div className="space-y-2">
                     <Label>Mời người cộng tác</Label>
                     <div className="flex gap-2">
@@ -434,9 +402,7 @@ export function ItineraryShareDialog({
                       />
                       <Select
                         value={invitePermission}
-                        onValueChange={(value: "read" | "edit") =>
-                          setInvitePermission(value)
-                        }
+                        onValueChange={(value: "read" | "edit") => setInvitePermission(value)}
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />
@@ -446,11 +412,8 @@ export function ItineraryShareDialog({
                           <SelectItem value="edit">Chỉnh sửa</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button
-                        onClick={handleInvite}
-                        disabled={inviteCollaborator.isPending}
-                      >
-                        <Mail className="w-4 h-4 mr-2" />
+                      <Button onClick={handleInvite} disabled={inviteCollaborator.isPending}>
+                        <Mail className="mr-2 h-4 w-4" />
                         Mời
                       </Button>
                     </div>
@@ -465,91 +428,78 @@ export function ItineraryShareDialog({
                       {collaborators.map((collab) => (
                         <div
                           key={collab.id}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="flex items-center justify-between rounded-lg border p-3"
                         >
                           <div className="flex-1">
                             <div className="font-medium">
-                              {collab.user_name &&
-                              collab.user_name !== "Unknown"
+                              {collab.user_name && collab.user_name !== "Unknown"
                                 ? collab.user_name
                                 : collab.user_email || "Unknown"}
                             </div>
                             {collab.user_email && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
+                              <div className="text-muted-foreground mt-0.5 text-xs">
                                 {collab.user_email}
                               </div>
                             )}
-                            <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-muted-foreground">
+                            <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-sm">
                               <div className="flex items-center gap-1">
-                                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium">
-                                  {collab.permission === "edit"
-                                    ? "Chỉnh sửa"
-                                    : "Đọc"}
+                                <span className="bg-primary/10 text-primary rounded px-2 py-0.5 text-xs font-medium">
+                                  {collab.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <span
-                                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  className={`rounded px-2 py-0.5 text-xs font-medium ${
                                     collab.status === "accepted"
                                       ? "bg-green-500/10 text-green-600 dark:text-green-400"
                                       : collab.status === "declined"
-                                      ? "bg-red-500/10 text-red-600 dark:text-red-400"
-                                      : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                                        ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                                        : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
                                   }`}
                                 >
                                   {collab.status === "accepted"
                                     ? "Đã chấp nhận"
                                     : collab.status === "declined"
-                                    ? "Đã từ chối"
-                                    : "Đang chờ"}
+                                      ? "Đã từ chối"
+                                      : "Đang chờ"}
                                 </span>
                               </div>
                               {collab.created_at && (
                                 <div className="flex items-center gap-1.5 text-xs">
-                                  <Clock className="w-3 h-3" />
+                                  <Clock className="h-3 w-3" />
                                   <span>
                                     {collab.status === "pending"
                                       ? "Mời ngày"
                                       : collab.status === "accepted"
-                                      ? "Chấp nhận ngày"
-                                      : "Từ chối ngày"}{" "}
-                                    {format(
-                                      new Date(collab.created_at),
-                                      "dd/MM/yyyy",
-                                      {
-                                        locale: vi,
-                                      }
-                                    )}
+                                        ? "Chấp nhận ngày"
+                                        : "Từ chối ngày"}{" "}
+                                    {format(new Date(collab.created_at), "dd/MM/yyyy", {
+                                      locale: vi,
+                                    })}
                                   </span>
                                 </div>
                               )}
                             </div>
                           </div>
-                          {(collab.status === "accepted" ||
-                            collab.status === "pending") && (
+                          {(collab.status === "accepted" || collab.status === "pending") && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                handleRemoveCollaboratorClick(
-                                  collab.id,
-                                  collab.status
-                                )
+                                handleRemoveCollaboratorClick(collab.id, collab.status)
                               }
                               title={
-                                collab.status === "pending"
-                                  ? "Hủy lời mời"
-                                  : "Xóa người cộng tác"
+                                collab.status === "pending" ? "Hủy lời mời" : "Xóa người cộng tác"
                               }
                             >
-                              <X className="w-4 h-4" />
+                              <X className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
+                    <p className="text-muted-foreground py-4 text-center text-sm">
                       Chưa có người cộng tác nào
                     </p>
                   )}
@@ -561,22 +511,16 @@ export function ItineraryShareDialog({
       </Dialog>
 
       {/* Delete Share Confirmation Dialog */}
-      <AlertDialog
-        open={deleteShareDialogOpen}
-        onOpenChange={setDeleteShareDialogOpen}
-      >
+      <AlertDialog open={deleteShareDialogOpen} onOpenChange={setDeleteShareDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa link chia sẻ</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa link chia sẻ này? Link sẽ không còn hoạt
-              động sau khi xóa.
+              Bạn có chắc chắn muốn xóa link chia sẻ này? Link sẽ không còn hoạt động sau khi xóa.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShareToDelete(null)}>
-              Hủy
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShareToDelete(null)}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteShareConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

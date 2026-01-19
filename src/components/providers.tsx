@@ -26,7 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             retryDelay: 1000,
           },
         },
-      })
+      }),
   );
 
   return (

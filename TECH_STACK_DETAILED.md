@@ -171,13 +171,7 @@ export type Place = {
   id: string;
   name: string;
   timeSlot: TimeSlot;
-  category:
-    | "food"
-    | "sightseeing"
-    | "culture"
-    | "coffee"
-    | "shopping"
-    | "other";
+  category: "food" | "sightseeing" | "culture" | "coffee" | "shopping" | "other";
   estimatedCost: number;
   specificTime?: string; // Optional property
   latitude?: number;
@@ -209,11 +203,7 @@ type TripStore = {
   selectedPlaceId?: string;
   setTrip: (trip: Trip) => void;
   addPlace: (dayId: string, place: Omit<Place, "id">) => void;
-  updatePlace: (
-    dayId: string,
-    placeId: string,
-    updates: Partial<Place>
-  ) => void;
+  updatePlace: (dayId: string, placeId: string, updates: Partial<Place>) => void;
   // ... more methods
 };
 ```
@@ -594,9 +584,7 @@ Hãy trả lời bằng tiếng Việt, thân thiện và hữu ích.`;
       systemPrompt += `- Số ngày: ${context.days.length}\n`;
       context.days.forEach((day) => {
         if (day.places && day.places.length > 0) {
-          systemPrompt += `  Ngày ${day.date}: ${day.places
-            .map((p) => p.name)
-            .join(", ")}\n`;
+          systemPrompt += `  Ngày ${day.date}: ${day.places.map((p) => p.name).join(", ")}\n`;
         }
       });
     }
@@ -606,9 +594,7 @@ Hãy trả lời bằng tiếng Việt, thân thiện và hữu ích.`;
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   // Generate response
-  const result = await model.generateContent(
-    `${systemPrompt}\n\nCâu hỏi: ${message}`
-  );
+  const result = await model.generateContent(`${systemPrompt}\n\nCâu hỏi: ${message}`);
   const response = await result.response;
   const text = response.text();
 
@@ -790,14 +776,12 @@ useEffect(() => {
 // Fetch route from Mapbox Directions API
 const fetchRoute = async (
   coordinates: [number, number][],
-  profile: "driving" | "walking" | "cycling"
+  profile: "driving" | "walking" | "cycling",
 ) => {
   if (coordinates.length < 2) return null;
 
   // Format coordinates
-  const coordinatesString = coordinates
-    .map((coord) => `${coord[0]},${coord[1]}`)
-    .join(";");
+  const coordinatesString = coordinates.map((coord) => `${coord[0]},${coord[1]}`).join(";");
 
   const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinatesString}?geometries=geojson&access_token=${MAPBOX_TOKEN}&overview=full&steps=true`;
 
@@ -812,9 +796,7 @@ const fetchRoute = async (
 
     // Add route to map
     if (mapRef.current?.getSource("route")) {
-      (mapRef.current.getSource("route") as mapboxgl.GeoJSONSource).setData(
-        geometry
-      );
+      (mapRef.current.getSource("route") as mapboxgl.GeoJSONSource).setData(geometry);
     } else {
       mapRef.current?.addLayer({
         id: "route",
@@ -919,11 +901,7 @@ type TripStore = {
   setTrip: (trip: Trip) => void;
   resetTrip: () => void;
   addPlace: (dayId: string, place: Omit<Place, "id">) => void;
-  updatePlace: (
-    dayId: string,
-    placeId: string,
-    updates: Partial<Place>
-  ) => void;
+  updatePlace: (dayId: string, placeId: string, updates: Partial<Place>) => void;
   removePlace: (dayId: string, placeId: string) => void;
   reorderPlaces: (dayId: string, fromIndex: number, toIndex: number) => void;
 
@@ -959,7 +937,7 @@ export const useTripStore = create<TripStore>()((set, get) => ({
                   },
                 ],
               }
-            : day
+            : day,
         ),
       },
     })),
@@ -973,10 +951,10 @@ export const useTripStore = create<TripStore>()((set, get) => ({
             ? {
                 ...day,
                 places: day.places.map((place) =>
-                  place.id === placeId ? { ...place, ...updates } : place
+                  place.id === placeId ? { ...place, ...updates } : place,
                 ),
               }
-            : day
+            : day,
         ),
       },
     })),
@@ -984,9 +962,8 @@ export const useTripStore = create<TripStore>()((set, get) => ({
   getTotalCost: () =>
     get().trip.days.reduce(
       (tripSum, day) =>
-        tripSum +
-        day.places.reduce((sum, place) => sum + (place.estimatedCost || 0), 0),
-      0
+        tripSum + day.places.reduce((sum, place) => sum + (place.estimatedCost || 0), 0),
+      0,
     ),
 
   getCostPerPerson: () => {

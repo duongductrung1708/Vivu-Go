@@ -2,27 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Trash2, Check, X, Package, User, Clock } from "lucide-react";
 import {
-  Plus,
-  Trash2,
-  Check,
-  X,
-  Package,
-  User,
-  Clock,
-} from "lucide-react";
-import { usePackingItems, useCreatePackingItem, useUpdatePackingItem, useDeletePackingItem } from "@/hooks/usePackingItems";
+  usePackingItems,
+  useCreatePackingItem,
+  useUpdatePackingItem,
+  useDeletePackingItem,
+  type PackingItem,
+} from "@/hooks/usePackingItems";
 import { useCanEditItinerary } from "@/hooks/useItinerarySharing";
 import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -33,14 +26,16 @@ interface PackingListProps {
   itineraryId: string;
 }
 
-const COMMON_CATEGORIES = [
-  "Giấy tờ",
-  "Quần áo",
-  "Điện tử",
-  "Vệ sinh cá nhân",
-  "Thuốc",
-  "Khác",
-];
+const COMMON_CATEGORIES = ["Giấy tờ", "Quần áo", "Điện tử", "Vệ sinh cá nhân", "Thuốc", "Khác"];
+
+function hasMessage(error: unknown): error is { message: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  );
+}
 
 export function PackingList({ itineraryId }: PackingListProps) {
   const { user } = useAuth();
@@ -62,11 +57,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
   useEffect(() => {
     const fetchUserEmails = async () => {
       const checkedByUserIds = Array.from(
-        new Set(
-          items
-            .filter((item) => item.checked_by)
-            .map((item) => item.checked_by!)
-        )
+        new Set(items.filter((item) => item.checked_by).map((item) => item.checked_by!)),
       );
 
       if (checkedByUserIds.length === 0) return;
@@ -75,7 +66,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
       // Note: This requires the users to be accessible, which might need RLS policies
       // For now, we'll use a simple approach and show user ID or "Người dùng"
       const emails: Record<string, string> = {};
-      
+
       // If current user is in the list, show "Bạn"
       checkedByUserIds.forEach((userId) => {
         if (userId === user?.id) {
@@ -86,7 +77,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
           emails[userId] = "Người dùng";
         }
       });
-      
+
       setUserEmails(emails);
     };
 
@@ -112,7 +103,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
           queryClient.invalidateQueries({
             queryKey: ["packing-items", itineraryId],
           });
-        }
+        },
       )
       .subscribe();
 
@@ -152,16 +143,16 @@ export function PackingList({ itineraryId }: PackingListProps) {
         title: "Đã thêm",
         description: "Món đồ đã được thêm vào danh sách.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error.message || "Không thể thêm món đồ.",
+        description: hasMessage(error) ? error.message : "Không thể thêm món đồ.",
       });
     }
   };
 
-  const handleToggleCheck = async (item: any) => {
+  const handleToggleCheck = async (item: PackingItem) => {
     if (!canEdit) {
       toast({
         variant: "destructive",
@@ -179,11 +170,11 @@ export function PackingList({ itineraryId }: PackingListProps) {
           is_checked: !item.is_checked,
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error.message || "Không thể cập nhật trạng thái.",
+        description: hasMessage(error) ? error.message : "Không thể cập nhật trạng thái.",
       });
     }
   };
@@ -204,16 +195,16 @@ export function PackingList({ itineraryId }: PackingListProps) {
         title: "Đã xóa",
         description: "Món đồ đã được xóa khỏi danh sách.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error.message || "Không thể xóa món đồ.",
+        description: hasMessage(error) ? error.message : "Không thể xóa món đồ.",
       });
     }
   };
 
-  const handleStartEdit = (item: any) => {
+  const handleStartEdit = (item: PackingItem) => {
     if (!canEdit) return;
     setEditingId(item.id);
     setEditName(item.item_name);
@@ -239,11 +230,11 @@ export function PackingList({ itineraryId }: PackingListProps) {
       });
       setEditingId(null);
       setEditName("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error.message || "Không thể cập nhật tên.",
+        description: hasMessage(error) ? error.message : "Không thể cập nhật tên.",
       });
     }
   };
@@ -254,14 +245,17 @@ export function PackingList({ itineraryId }: PackingListProps) {
   };
 
   // Group items by category
-  const groupedItems = items.reduce((acc, item) => {
-    const category = item.category || "Khác";
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(item);
-    return acc;
-  }, {} as Record<string, typeof items>);
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      const category = item.category || "Khác";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof items>,
+  );
 
   const checkedCount = items.filter((item) => item.is_checked).length;
   const totalCount = items.length;
@@ -269,7 +263,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
 
   if (isLoading) {
     return (
-      <Card className="border border-border">
+      <Card className="border-border border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -277,14 +271,14 @@ export function PackingList({ itineraryId }: PackingListProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">Đang tải...</div>
+          <div className="text-muted-foreground text-sm">Đang tải...</div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border border-border">
+    <Card className="border-border border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Package className="h-5 w-5" />
@@ -292,13 +286,13 @@ export function PackingList({ itineraryId }: PackingListProps) {
         </CardTitle>
         {totalCount > 0 && (
           <div className="mt-2">
-            <div className="flex items-center justify-between text-sm mb-1">
+            <div className="mb-1 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
                 {checkedCount} / {totalCount} món đã chuẩn bị
               </span>
               <span className="font-medium">{Math.round(progressPercentage)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="bg-muted h-2 w-full rounded-full">
               <motion.div
                 className="bg-primary h-2 rounded-full"
                 initial={{ width: 0 }}
@@ -312,7 +306,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
       <CardContent className="space-y-4">
         {/* Add new item */}
         {canEdit && (
-          <div className="space-y-2 p-3 rounded-lg bg-muted/50">
+          <div className="bg-muted/50 space-y-2 rounded-lg p-3">
             <div className="flex gap-2">
               <Input
                 placeholder="Nhập món đồ cần mang (VD: CCCD, thẻ sinh viên FPT...)"
@@ -336,7 +330,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
             <select
               value={newItemCategory}
               onChange={(e) => setNewItemCategory(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
             >
               <option value="">Chọn danh mục (tùy chọn)</option>
               {COMMON_CATEGORIES.map((cat) => (
@@ -350,8 +344,8 @@ export function PackingList({ itineraryId }: PackingListProps) {
 
         {/* Items list */}
         {items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <div className="text-muted-foreground py-8 text-center">
+            <Package className="mx-auto mb-3 h-12 w-12 opacity-50" />
             <p className="text-sm">
               {canEdit
                 ? "Chưa có món đồ nào. Thêm món đồ đầu tiên!"
@@ -363,9 +357,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
             {Object.entries(groupedItems).map(([category, categoryItems]) => (
               <div key={category} className="space-y-2">
                 {category !== "Khác" && (
-                  <h4 className="text-sm font-medium text-muted-foreground px-1">
-                    {category}
-                  </h4>
+                  <h4 className="text-muted-foreground px-1 text-sm font-medium">{category}</h4>
                 )}
                 <AnimatePresence>
                   {categoryItems.map((item) => (
@@ -374,7 +366,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                      className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
                         item.is_checked
                           ? "bg-muted/50 border-muted"
                           : "bg-card border-border hover:border-primary/50"
@@ -386,7 +378,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
                         disabled={!canEdit}
                         className="shrink-0"
                       />
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         {editingId === item.id ? (
                           <div className="flex items-center gap-2">
                             <Input
@@ -399,7 +391,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
                                   handleCancelEdit();
                                 }
                               }}
-                              className="flex-1 h-8"
+                              className="h-8 flex-1"
                               autoFocus
                             />
                             <Button
@@ -422,28 +414,26 @@ export function PackingList({ itineraryId }: PackingListProps) {
                         ) : (
                           <div
                             className={`${
-                              item.is_checked
-                                ? "line-through text-muted-foreground"
-                                : ""
+                              item.is_checked ? "text-muted-foreground line-through" : ""
                             }`}
                             onDoubleClick={() => handleStartEdit(item)}
                           >
                             <p className="text-sm font-medium">{item.item_name}</p>
                             {item.is_checked && item.checked_by && (
-                              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                              <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                                 <User className="h-3 w-3" />
                                 <span>
-                                  {item.checked_by === user?.id ? "Bạn" : userEmails[item.checked_by] || "Người dùng"}
+                                  {item.checked_by === user?.id
+                                    ? "Bạn"
+                                    : userEmails[item.checked_by] || "Người dùng"}
                                 </span>
                                 {item.checked_at && (
                                   <>
-                                    <Clock className="h-3 w-3 ml-2" />
+                                    <Clock className="ml-2 h-3 w-3" />
                                     <span>
-                                      {format(
-                                        new Date(item.checked_at),
-                                        "dd/MM HH:mm",
-                                        { locale: vi }
-                                      )}
+                                      {format(new Date(item.checked_at), "dd/MM HH:mm", {
+                                        locale: vi,
+                                      })}
                                     </span>
                                   </>
                                 )}
@@ -457,7 +447,7 @@ export function PackingList({ itineraryId }: PackingListProps) {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteItem(item.id)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

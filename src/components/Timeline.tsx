@@ -1,11 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DndContext, type DragEndEvent, type DragStartEvent, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+  DndContext,
+  type DragEndEvent,
+  type DragStartEvent,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { format } from "date-fns";
 import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
 import { Plus, Users, Route, Loader2 } from "lucide-react";
@@ -50,7 +55,7 @@ export function Timeline() {
       activationConstraint: {
         distance: 8, // Require 8px of movement before starting drag
       },
-    })
+    }),
   );
 
   const selectedDay = useMemo(() => {
@@ -75,12 +80,8 @@ export function Timeline() {
     if (active.id === over.id) {
       return;
     }
-    const oldIndex = selectedDay.places.findIndex(
-      (place) => place.id === active.id
-    );
-    const newIndex = selectedDay.places.findIndex(
-      (place) => place.id === over.id
-    );
+    const oldIndex = selectedDay.places.findIndex((place) => place.id === active.id);
+    const newIndex = selectedDay.places.findIndex((place) => place.id === over.id);
     if (oldIndex === -1 || newIndex === -1) {
       return;
     }
@@ -90,20 +91,18 @@ export function Timeline() {
   const dayCost = selectedDay ? getDayCost(selectedDay.id) : 0;
 
   // Check if selected day has places with coordinates
-  const hasPlacesWithCoords = selectedDay && selectedDay.places
-    ? selectedDay.places.some(
-        (place) =>
-          typeof place.latitude === "number" &&
-          typeof place.longitude === "number"
-      )
-    : false;
-  const placesWithCoordsCount = selectedDay && selectedDay.places
-    ? selectedDay.places.filter(
-        (place) =>
-          typeof place.latitude === "number" &&
-          typeof place.longitude === "number"
-      ).length
-    : 0;
+  const hasPlacesWithCoords =
+    selectedDay && selectedDay.places
+      ? selectedDay.places.some(
+          (place) => typeof place.latitude === "number" && typeof place.longitude === "number",
+        )
+      : false;
+  const placesWithCoordsCount =
+    selectedDay && selectedDay.places
+      ? selectedDay.places.filter(
+          (place) => typeof place.latitude === "number" && typeof place.longitude === "number",
+        ).length
+      : 0;
 
   const handleOptimizeRoute = async () => {
     if (!selectedDay || placesWithCoordsCount < 2) {
@@ -144,7 +143,7 @@ export function Timeline() {
 
   return (
     <div
-      className="flex h-full flex-col gap-2 rounded-3xl bg-muted/80 p-3 border border-border/50"
+      className="bg-muted/80 border-border/50 flex h-full flex-col gap-2 rounded-3xl border p-3"
       onClick={(e) => {
         // Click vào vùng trống của timeline container để bỏ chọn place
         const target = e.target as HTMLElement;
@@ -161,48 +160,40 @@ export function Timeline() {
     >
       <div className="flex shrink-0 items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             Chuyến đi
           </p>
-          <h1 className="text-base font-semibold text-foreground">
-            {trip.name}
-          </h1>
+          <h1 className="text-foreground text-base font-semibold">{trip.name}</h1>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-card px-2.5 py-1 text-xs text-card-foreground shadow-sm border border-border">
-          <Users className="h-3.5 w-3.5 text-primary" />
+        <div className="bg-card text-card-foreground border-border inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs shadow-sm">
+          <Users className="text-primary h-3.5 w-3.5" />
           <span>{trip.peopleCount} người</span>
         </div>
       </div>
 
       <LayoutGroup>
-        <div className="shrink-0 flex gap-2 overflow-x-auto pb-1">
+        <div className="flex shrink-0 gap-2 overflow-x-auto pb-1">
           {trip.days.map((day) => {
             const isActive = day.id === selectedDayId;
-            const label = isMounted
-              ? format(new Date(day.date), "EEE dd MMM")
-              : day.date;
+            const label = isMounted ? format(new Date(day.date), "EEE dd MMM") : day.date;
             return (
               <button
                 key={day.id}
                 type="button"
                 onClick={() => selectDay(day.id)}
-                className="relative inline-flex flex-col items-start rounded-2xl px-2.5 py-1.5 text-left text-xs text-foreground"
+                className="text-foreground relative inline-flex flex-col items-start rounded-2xl px-2.5 py-1.5 text-left text-xs"
               >
                 <span className="font-medium">{label}</span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-muted-foreground text-[11px]">
                   {day.places.length} địa điểm
                 </span>
                 {location && (
-                  <DayWeather
-                    latitude={location.lat}
-                    longitude={location.lng}
-                    date={day.date}
-                  />
+                  <DayWeather latitude={location.lat} longitude={location.lng} date={day.date} />
                 )}
                 {isActive && (
                   <motion.div
                     layoutId="day-indicator"
-                    className="absolute inset-0 -z-10 rounded-2xl bg-card shadow-sm border border-border"
+                    className="bg-card border-border absolute inset-0 -z-10 rounded-2xl border shadow-sm"
                     transition={{
                       type: "spring",
                       stiffness: 350,
@@ -217,11 +208,9 @@ export function Timeline() {
       </LayoutGroup>
 
       <div className="shrink-0 space-y-2">
-        <div className="flex items-center justify-between rounded-2xl bg-card px-3 py-1.5 text-xs text-card-foreground shadow-sm border border-border">
+        <div className="bg-card text-card-foreground border-border flex items-center justify-between rounded-2xl border px-3 py-1.5 text-xs shadow-sm">
           <span>Tổng ngày</span>
-          <span className="font-semibold text-foreground">
-            {dayCost.toLocaleString("vi-VN")} đ
-          </span>
+          <span className="text-foreground font-semibold">{dayCost.toLocaleString("vi-VN")} đ</span>
         </div>
 
         {hasPlacesWithCoords && placesWithCoordsCount >= 2 && (
@@ -230,7 +219,7 @@ export function Timeline() {
               type="button"
               onClick={handleOptimizeRoute}
               disabled={isOptimizing}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary flex flex-1 items-center justify-center gap-2 rounded-2xl border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isOptimizing ? (
                 <>
@@ -245,9 +234,9 @@ export function Timeline() {
               )}
             </button>
             {routeDistance !== null && (
-              <div className="rounded-2xl bg-card px-3 py-1.5 text-xs text-card-foreground shadow-sm border border-border">
+              <div className="bg-card text-card-foreground border-border rounded-2xl border px-3 py-1.5 text-xs shadow-sm">
                 <span className="text-muted-foreground">Tổng: </span>
-                <span className="font-semibold text-foreground">
+                <span className="text-foreground font-semibold">
                   {(routeDistance / 1000).toFixed(1)} km
                 </span>
               </div>
@@ -258,7 +247,7 @@ export function Timeline() {
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div
-          className="flex-1 min-h-0 space-y-2 overflow-y-auto"
+          className="min-h-0 flex-1 space-y-2 overflow-y-auto"
           onClick={(e) => {
             // Click vào vùng trống để bỏ chọn
             if (
@@ -341,34 +330,36 @@ export function Timeline() {
           <button
             type="button"
             onClick={() => setIsSearchModalOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-primary/30 bg-primary/10 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/20"
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed py-1.5 text-xs font-medium transition"
           >
             <Plus className="h-3.5 w-3.5" />
             Thêm địa điểm (tìm kiếm)
           </button>
         </div>
         <DragOverlay>
-          {activePlaceId && selectedDay ? (() => {
-            const activePlace = selectedDay.places?.find(p => p.id === activePlaceId);
-            return activePlace ? (
-              <div className="rotate-3 opacity-90">
-                <PlaceCard
-                  place={activePlace}
-                  timeLabel={timeSlotLabel[activePlace.timeSlot]}
-                  isActive={false}
-                  onClick={() => {}}
-                  onDelete={() => {}}
-                  onUpdateCost={() => {}}
-                  onUpdateName={() => {}}
-                  onUpdateTimeSlot={() => {}}
-                  onUpdateCategory={() => {}}
-                  onUpdateTime={() => {}}
-                  onRemoveLocation={() => {}}
-                  onShowNearbyPlaces={() => {}}
-                />
-              </div>
-            ) : null;
-          })() : null}
+          {activePlaceId && selectedDay
+            ? (() => {
+                const activePlace = selectedDay.places?.find((p) => p.id === activePlaceId);
+                return activePlace ? (
+                  <div className="rotate-3 opacity-90">
+                    <PlaceCard
+                      place={activePlace}
+                      timeLabel={timeSlotLabel[activePlace.timeSlot]}
+                      isActive={false}
+                      onClick={() => {}}
+                      onDelete={() => {}}
+                      onUpdateCost={() => {}}
+                      onUpdateName={() => {}}
+                      onUpdateTimeSlot={() => {}}
+                      onUpdateCategory={() => {}}
+                      onUpdateTime={() => {}}
+                      onRemoveLocation={() => {}}
+                      onShowNearbyPlaces={() => {}}
+                    />
+                  </div>
+                ) : null;
+              })()
+            : null}
         </DragOverlay>
       </DndContext>
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Download, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,16 +18,27 @@ export function PWAInstaller() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
-    // Register service worker
+    // Service worker should only be enabled in production builds.
+    // In dev, SW caching can cause hydration mismatch (stale HTML vs new JS).
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registered:", registration);
-        })
-        .catch((error) => {
-          console.error("Service Worker registration failed:", error);
+      if (process.env.NODE_ENV !== "production") {
+        // Best-effort cleanup if a SW was registered before.
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => registration.unregister());
         });
+        if ("caches" in window) {
+          caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+        }
+      } else {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("Service Worker registered:", registration);
+          })
+          .catch((error) => {
+            console.error("Service Worker registration failed:", error);
+          });
+      }
     }
 
     // Listen for beforeinstallprompt event
@@ -76,16 +86,17 @@ export function PWAInstaller() {
         <AlertDialogHeader>
           <AlertDialogTitle>Cài đặt Vivu Go</AlertDialogTitle>
           <AlertDialogDescription>
-            Cài đặt ứng dụng để sử dụng offline và truy cập nhanh hơn. Dữ liệu lịch trình sẽ được lưu cache để bạn có thể xem ngay cả khi không có internet.
+            Cài đặt ứng dụng để sử dụng offline và truy cập nhanh hơn. Dữ liệu lịch trình sẽ được
+            lưu cache để bạn có thể xem ngay cả khi không có internet.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={() => setShowInstallPrompt(false)}>
-            <X className="w-4 h-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Để sau
           </AlertDialogCancel>
           <AlertDialogAction onClick={handleInstall}>
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="mr-2 h-4 w-4" />
             Cài đặt ngay
           </AlertDialogAction>
         </AlertDialogFooter>

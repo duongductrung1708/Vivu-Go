@@ -13,7 +13,7 @@ import type { Trip } from "@/store/useTripStore";
  */
 export function useItineraryRealtime(
   itineraryId: string | undefined,
-  setTrip?: (trip: Trip) => void
+  setTrip?: (trip: Trip) => void,
 ) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -37,28 +37,22 @@ export function useItineraryRealtime(
         (payload) => {
           const updatedItinerary = payload.new as Itinerary;
           const tripDataString = JSON.stringify(updatedItinerary.trip_data);
-          
+
           // Check if this is a different update than what we last saved
           if (tripDataString === lastLocalUpdateRef.current) {
             // This is our own update, just update cache
-            queryClient.setQueryData(
-              ["itinerary", itineraryId],
-              updatedItinerary
-            );
+            queryClient.setQueryData(["itinerary", itineraryId], updatedItinerary);
             queryClient.invalidateQueries({ queryKey: ["itineraries"] });
             return;
           }
-          
+
           // This is a remote update
           if (tripDataString !== lastRemoteUpdateRef.current) {
             setIsApplyingRemoteChange(true);
-            
+
             // Always update React Query cache
-            queryClient.setQueryData(
-              ["itinerary", itineraryId],
-              updatedItinerary
-            );
-            
+            queryClient.setQueryData(["itinerary", itineraryId], updatedItinerary);
+
             // Sync with Zustand store if setTrip is provided
             if (setTrip && updatedItinerary.trip_data) {
               setTrip({
@@ -72,18 +66,18 @@ export function useItineraryRealtime(
                   updatedItinerary.total_budget ?? updatedItinerary.trip_data.totalBudget,
               });
             }
-            
+
             lastRemoteUpdateRef.current = tripDataString;
-            
+
             // Reset flag after a short delay
             setTimeout(() => {
               setIsApplyingRemoteChange(false);
             }, 500);
           }
-          
+
           // Also invalidate the list query
           queryClient.invalidateQueries({ queryKey: ["itineraries"] });
-        }
+        },
       )
       .subscribe();
 
@@ -91,11 +85,11 @@ export function useItineraryRealtime(
       supabase.removeChannel(channel);
     };
   }, [itineraryId, queryClient, user, setTrip]);
-  
-  return { 
+
+  return {
     isApplyingRemoteChange,
     markLocalUpdate: (tripData: Trip) => {
       lastLocalUpdateRef.current = JSON.stringify(tripData);
-    }
+    },
   };
 }

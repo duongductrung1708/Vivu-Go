@@ -7,8 +7,7 @@ const features = [
   {
     icon: Calendar,
     title: "Lịch trình linh hoạt",
-    description:
-      "Không giới hạn số ngày hay số người. Tự do thêm, bớt và kéo thả địa điểm.",
+    description: "Không giới hạn số ngày hay số người. Tự do thêm, bớt và kéo thả địa điểm.",
     color: "bg-secondary",
     iconColor: "text-secondary-foreground",
   },
@@ -53,20 +52,19 @@ const item = {
 
 const FeaturesSection = () => {
   return (
-    <section className="py-24 bg-muted/30">
+    <section className="bg-muted/30 py-24">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="mb-16 text-center"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">
             Tại sao chọn <span className="text-gradient">chúng tôi?</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Tất cả những gì bạn cần để có một chuyến đi hoàn hảo, gói gọn trong
-            một ứng dụng.
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
+            Tất cả những gì bạn cần để có một chuyến đi hoàn hảo, gói gọn trong một ứng dụng.
           </p>
         </motion.div>
 
@@ -75,23 +73,23 @@ const FeaturesSection = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
         >
           {features.map((feature, index) => (
             <motion.div
               key={index}
               variants={item}
               whileHover={{ y: -8, scale: 1.02 }}
-              className="bg-card rounded-3xl p-6 shadow-lg border border-border/50 hover:shadow-xl transition-all duration-300"
+              className="bg-card border-border/50 rounded-3xl border p-6 shadow-lg transition-all duration-300 hover:shadow-xl"
             >
               <motion.div
-                className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-4`}
+                className={`h-14 w-14 ${feature.color} mb-4 flex items-center justify-center rounded-2xl`}
                 whileHover={{ rotate: [0, -10, 10, 0] }}
                 transition={{ duration: 0.5 }}
               >
-                <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
+                <feature.icon className={`h-7 w-7 ${feature.iconColor}`} />
               </motion.div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>
             </motion.div>
           ))}

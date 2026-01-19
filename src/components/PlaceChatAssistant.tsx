@@ -23,7 +23,8 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
     {
       id: "1",
       role: "assistant",
-      content: "Xin chào! Tôi là trợ lý AI của Vivu Go. Tôi có thể giúp bạn tư vấn về các địa điểm du lịch, nhà hàng, điểm tham quan và lịch trình. Bạn muốn hỏi gì?",
+      content:
+        "Xin chào! Tôi là trợ lý AI của Vivu Go. Tôi có thể giúp bạn tư vấn về các địa điểm du lịch, nhà hàng, điểm tham quan và lịch trình. Bạn muốn hỏi gì?",
       timestamp: new Date(),
     },
   ]);
@@ -108,21 +109,23 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
-      
+
       let errorContent = "Xin lỗi, tôi gặp lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.";
-      
+
       if (error instanceof Error) {
         const errorMsg = error.message.toLowerCase();
-        
+
         if (errorMsg.includes("api key") || errorMsg.includes("gemini api key")) {
-          errorContent = "⚠️ Lỗi cấu hình: Chưa thiết lập GEMINI_API_KEY. Vui lòng thêm API key vào file .env.local và khởi động lại server.";
+          errorContent =
+            "⚠️ Lỗi cấu hình: Chưa thiết lập GEMINI_API_KEY. Vui lòng thêm API key vào file .env.local và khởi động lại server.";
         } else if (errorMsg.includes("quota") || errorMsg.includes("limit")) {
-          errorContent = "⚠️ Đã vượt quá giới hạn sử dụng API. Vui lòng kiểm tra quota của Gemini API.";
+          errorContent =
+            "⚠️ Đã vượt quá giới hạn sử dụng API. Vui lòng kiểm tra quota của Gemini API.";
         } else {
           errorContent = `⚠️ Lỗi: ${error.message}`;
         }
       }
-      
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -162,7 +165,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
         // Dates: DD/MM/YYYY or DD-MM-YYYY
         regex: /\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b/g,
         render: (date: string) => (
-          <span key={`date-${key++}`} className="font-semibold text-primary">
+          <span key={`date-${key++}`} className="text-primary font-semibold">
             {date}
           </span>
         ),
@@ -207,7 +210,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
     for (let i = 0; i < matches.length; i++) {
       const current = matches[i];
       const overlaps = nonOverlapping.some(
-        (m) => !(current.end <= m.start || current.start >= m.end)
+        (m) => !(current.end <= m.start || current.start >= m.end),
       );
       if (!overlaps) {
         nonOverlapping.push(current);
@@ -243,12 +246,12 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-40"
+            className="fixed right-6 bottom-6 z-40"
           >
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 h-14 w-14 rounded-full shadow-lg"
               aria-label="Mở chat AI"
             >
               <MessageCircle className="h-6 w-6" />
@@ -264,19 +267,17 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-40 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-lg border border-border bg-card shadow-2xl"
+            className="border-border bg-card fixed right-6 bottom-6 z-40 flex h-[600px] max-h-[calc(100vh-3rem)] w-[400px] max-w-[calc(100vw-3rem)] flex-col rounded-lg border shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/50">
+            <div className="border-border bg-muted/50 flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-primary" />
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                  <Bot className="text-primary h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm">Trợ lý AI Vivu Go</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Tư vấn địa điểm & du lịch
-                  </p>
+                  <h3 className="text-sm font-semibold">Trợ lý AI Vivu Go</h3>
+                  <p className="text-muted-foreground text-xs">Tư vấn địa điểm & du lịch</p>
                 </div>
               </div>
               <Button
@@ -291,7 +292,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto p-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -300,8 +301,8 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Bot className="h-4 w-4 text-primary" />
+                    <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+                      <Bot className="text-primary h-4 w-4" />
                     </div>
                   )}
                   <div
@@ -311,13 +312,12 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    <div className="text-sm whitespace-pre-wrap wrap-break-words">
-                      {message.role === "assistant" 
+                    <div className="wrap-break-words text-sm whitespace-pre-wrap">
+                      {message.role === "assistant"
                         ? renderMarkdown(message.content)
-                        : message.content
-                      }
+                        : message.content}
                     </div>
-                    <p className="text-xs mt-1 opacity-70">
+                    <p className="mt-1 text-xs opacity-70">
                       {message.timestamp.toLocaleTimeString("vi-VN", {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -325,19 +325,19 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
                     </p>
                   </div>
                   {message.role === "user" && (
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <User className="h-4 w-4 text-primary" />
+                    <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+                      <User className="text-primary h-4 w-4" />
                     </div>
                   )}
                 </div>
               ))}
               {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="h-4 w-4 text-primary" />
+                <div className="flex justify-start gap-3">
+                  <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+                    <Bot className="text-primary h-4 w-4" />
                   </div>
                   <div className="bg-muted rounded-lg px-4 py-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
                   </div>
                 </div>
               )}
@@ -345,7 +345,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border bg-muted/30">
+            <div className="border-border bg-muted/30 border-t p-4">
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -354,7 +354,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Nhập câu hỏi của bạn..."
-                  className="flex-1 px-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0"
+                  className="border-border bg-background focus:ring-primary flex-1 rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:ring-offset-0 focus:outline-none"
                   disabled={isLoading}
                 />
                 <Button
@@ -370,9 +370,7 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Nhấn Enter để gửi
-              </p>
+              <p className="text-muted-foreground mt-2 text-center text-xs">Nhấn Enter để gửi</p>
             </div>
           </motion.div>
         )}
@@ -380,4 +378,3 @@ export function PlaceChatAssistant({ userLocation }: PlaceChatAssistantProps) {
     </>
   );
 }
-

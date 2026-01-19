@@ -4,7 +4,10 @@ import type { Trip, Day, Place } from "@/store/useTripStore";
 /**
  * Convert time slot to time of day
  */
-function getTimeForSlot(timeSlot: Place["timeSlot"], specificTime?: string): { hour: number; minute: number } {
+function getTimeForSlot(
+  timeSlot: Place["timeSlot"],
+  specificTime?: string,
+): { hour: number; minute: number } {
   if (specificTime) {
     const [hour, minute] = specificTime.split(":").map(Number);
     return { hour, minute };
@@ -68,7 +71,7 @@ export function generateGoogleCalendarICS(itinerary: Itinerary): string {
     day.places.forEach((place: Place) => {
       const { hour, minute } = getTimeForSlot(place.timeSlot, place.specificTime);
       const startDateTime = formatICSDateTime(day.date, hour, minute);
-      
+
       // End time is 1 hour after start (or adjust based on category)
       let endHour = hour + 1;
       let endMinute = minute;
@@ -90,14 +93,17 @@ export function generateGoogleCalendarICS(itinerary: Itinerary): string {
         descriptionParts.push(`Chi phí ước tính: ${place.estimatedCost.toLocaleString("vi-VN")} đ`);
       }
       if (place.latitude && place.longitude) {
-        descriptionParts.push(`Vị trí: https://maps.google.com/?q=${place.latitude},${place.longitude}`);
+        descriptionParts.push(
+          `Vị trí: https://maps.google.com/?q=${place.latitude},${place.longitude}`,
+        );
       }
       const description = descriptionParts.join("\\n");
 
       // Location (use coordinates if available)
-      const location = place.latitude && place.longitude 
-        ? `${place.name} (${place.latitude}, ${place.longitude})`
-        : place.name;
+      const location =
+        place.latitude && place.longitude
+          ? `${place.name} (${place.latitude}, ${place.longitude})`
+          : place.name;
 
       // Event
       lines.push("BEGIN:VEVENT");
@@ -109,7 +115,9 @@ export function generateGoogleCalendarICS(itinerary: Itinerary): string {
         lines.push(`DESCRIPTION:${escapeICS(description)}`);
       }
       lines.push(`LOCATION:${escapeICS(location)}`);
-      lines.push(`DTSTAMP:${formatICSDateTime(new Date().toISOString().slice(0, 10), new Date().getHours(), new Date().getMinutes())}`);
+      lines.push(
+        `DTSTAMP:${formatICSDateTime(new Date().toISOString().slice(0, 10), new Date().getHours(), new Date().getMinutes())}`,
+      );
       lines.push("END:VEVENT");
     });
   });

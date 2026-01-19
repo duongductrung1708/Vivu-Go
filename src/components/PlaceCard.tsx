@@ -44,17 +44,17 @@ type PlaceCardProps = {
 const CategoryIcon = ({ category }: { category: Place["category"] }) => {
   switch (category) {
     case "food":
-      return <Utensils className="h-4 w-4 text-primary" />;
+      return <Utensils className="text-primary h-4 w-4" />;
     case "coffee":
-      return <Coffee className="h-4 w-4 text-primary" />;
+      return <Coffee className="text-primary h-4 w-4" />;
     case "shopping":
-      return <ShoppingBag className="h-4 w-4 text-primary" />;
+      return <ShoppingBag className="text-primary h-4 w-4" />;
     case "culture":
-      return <Landmark className="h-4 w-4 text-primary" />;
+      return <Landmark className="text-primary h-4 w-4" />;
     case "sightseeing":
-      return <MapPin className="h-4 w-4 text-primary" />;
+      return <MapPin className="text-primary h-4 w-4" />;
     default:
-      return <MapPin className="h-4 w-4 text-primary" />;
+      return <MapPin className="text-primary h-4 w-4" />;
   }
 };
 
@@ -191,10 +191,8 @@ export function PlaceCard({
       whileHover={isDragging ? {} : { y: -2 }}
       whileTap={isDragging ? {} : { scale: 0.98 }}
       animate={isDragging ? { scale: 1.02 } : { scale: 1 }}
-      className={`group flex w-full cursor-pointer mt-4 flex-col rounded-3xl border bg-card/80 p-4 text-left shadow-sm transition-colors relative ${
-        isActive
-          ? "border-primary shadow-md"
-          : "border-border hover:border-primary/50"
+      className={`group bg-card/80 relative mt-4 flex w-full cursor-pointer flex-col rounded-3xl border p-4 text-left shadow-sm transition-colors ${
+        isActive ? "border-primary shadow-md" : "border-border hover:border-primary/50"
       } ${isDragging ? "z-50 shadow-lg" : ""}`}
     >
       {/* Drag Handle - Absolute positioned to not affect layout */}
@@ -203,7 +201,7 @@ export function PlaceCard({
         {...attributes}
         {...listeners}
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-0 top-7 cursor-grab active:cursor-grabbing p-1.5 text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 z-10"
+        className="text-muted-foreground hover:text-foreground absolute top-7 left-0 z-10 cursor-grab p-1.5 opacity-0 transition-colors group-hover:opacity-100 active:cursor-grabbing"
         aria-label="Kéo để sắp xếp"
       >
         <GripVertical className="h-4 w-4" />
@@ -218,12 +216,10 @@ export function PlaceCard({
                   e.stopPropagation();
                   setIsEditingTimeSlot(!isEditingTimeSlot);
                 }}
-                className="flex items-center gap-2 rounded-lg border-2 border-primary/50 bg-card px-3 py-1.5 text-xs font-medium text-primary shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="border-primary/50 bg-card text-primary focus:border-primary focus:ring-primary/20 flex items-center gap-2 rounded-lg border-2 px-3 py-1.5 text-xs font-medium shadow-sm transition focus:ring-2 focus:outline-none"
               >
                 {(() => {
-                  const selected = timeSlotOptions.find(
-                    (opt) => opt.value === place.timeSlot
-                  );
+                  const selected = timeSlotOptions.find((opt) => opt.value === place.timeSlot);
                   const Icon = selected?.icon || Sunrise;
                   return (
                     <>
@@ -241,7 +237,7 @@ export function PlaceCard({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border-2 border-primary/50 bg-card shadow-lg"
+                    className="border-primary/50 bg-card absolute top-full left-0 z-50 mt-1 w-full rounded-lg border-2 shadow-lg"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {timeSlotOptions.map((option) => {
@@ -276,7 +272,7 @@ export function PlaceCard({
                 e.stopPropagation();
                 setIsEditingTimeSlot(false);
               }}
-              className="rounded-lg bg-muted p-1 text-destructive transition hover:bg-destructive/10 hover:text-destructive"
+              className="bg-muted text-destructive hover:bg-destructive/10 hover:text-destructive rounded-lg p-1 transition"
               title="Hủy"
             >
               <X className="h-3.5 w-3.5" />
@@ -284,7 +280,7 @@ export function PlaceCard({
           </div>
         ) : (
           <div
-            className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary cursor-pointer hover:bg-primary/20 transition"
+            className="bg-primary/10 text-primary hover:bg-primary/20 inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition"
             onClick={(e) => {
               e.stopPropagation();
               if (onUpdateTimeSlot) setIsEditingTimeSlot(true);
@@ -293,17 +289,12 @@ export function PlaceCard({
           >
             <Clock className="h-3.5 w-3.5" />
             <span>{timeLabel}</span>
-            {place.specificTime && (
-              <span className="ml-1 text-[10px]">({place.specificTime})</span>
-            )}
+            {place.specificTime && <span className="ml-1 text-[10px]">({place.specificTime})</span>}
           </div>
         )}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
           {isEditingCategory ? (
-            <div
-              className="flex items-center gap-1.5"
-              ref={categoryDropdownRef}
-            >
+            <div className="flex items-center gap-1.5" ref={categoryDropdownRef}>
               <div className="relative">
                 <button
                   type="button"
@@ -311,16 +302,14 @@ export function PlaceCard({
                     e.stopPropagation();
                     setIsEditingCategory(!isEditingCategory);
                   }}
-                  className="flex items-center gap-2 rounded-lg border-2 border-primary/50 bg-card px-3 py-1.5 text-xs text-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="border-primary/50 bg-card text-foreground focus:border-primary focus:ring-primary/20 flex items-center gap-2 rounded-lg border-2 px-3 py-1.5 text-xs shadow-sm transition focus:ring-2 focus:outline-none"
                 >
                   {(() => {
-                    const selected = categoryOptions.find(
-                      (opt) => opt.value === place.category
-                    );
+                    const selected = categoryOptions.find((opt) => opt.value === place.category);
                     const Icon = selected?.icon || MapPin;
                     return (
                       <>
-                        <Icon className="h-3 w-3 text-primary" />
+                        <Icon className="text-primary h-3 w-3" />
                         <span>{selected?.label || "Tham Quan"}</span>
                         <ChevronDown className="h-3 w-3" />
                       </>
@@ -334,7 +323,7 @@ export function PlaceCard({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border-2 border-primary/50 bg-card shadow-lg"
+                      className="border-primary/50 bg-card absolute top-full left-0 z-50 mt-1 w-full rounded-lg border-2 shadow-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {categoryOptions.map((option) => {
@@ -375,7 +364,7 @@ export function PlaceCard({
                   e.stopPropagation();
                   setIsEditingCategory(false);
                 }}
-                className="rounded-lg bg-muted p-1 text-destructive transition hover:bg-destructive/10 hover:text-destructive"
+                className="bg-muted text-destructive hover:bg-destructive/10 hover:text-destructive rounded-lg p-1 transition"
                 title="Hủy"
               >
                 <X className="h-3.5 w-3.5" />
@@ -383,7 +372,7 @@ export function PlaceCard({
             </div>
           ) : (
             <div
-              className="flex items-center gap-1 cursor-pointer hover:bg-muted50 rounded px-1 py-0.5 transition"
+              className="hover:bg-muted50 flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 transition"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onUpdateCategory) setIsEditingCategory(true);
@@ -401,7 +390,7 @@ export function PlaceCard({
                 value={costValue}
                 onChange={(e) => setCostValue(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-20 rounded-lg border border-border px-2 py-0.5 text-xs focus:border-primary focus:outline-none"
+                className="border-border focus:border-primary w-20 rounded-lg border px-2 py-0.5 text-xs focus:outline-none"
                 autoFocus
               />
               <button
@@ -439,9 +428,9 @@ export function PlaceCard({
                     e.stopPropagation();
                     setIsEditingCost(true);
                   }}
-                  className="rounded p-0.5 opacity-0 transition hover:bg-muted100 group-hover:opacity-100"
+                  className="hover:bg-muted100 rounded p-0.5 opacity-0 transition group-hover:opacity-100"
                 >
-                  <Edit2 className="h-3 w-3 text-muted-foreground400" />
+                  <Edit2 className="text-muted-foreground400 h-3 w-3" />
                 </button>
               )}
             </div>
@@ -466,7 +455,7 @@ export function PlaceCard({
                     handleCancelEditName();
                   }
                 }}
-                className="flex-1 rounded-lg border border-border px-2 py-1 text-sm font-semibold text-muted-foreground900 focus:border-primary focus:outline-none"
+                className="border-border text-muted-foreground900 focus:border-primary flex-1 rounded-lg border px-2 py-1 text-sm font-semibold focus:outline-none"
                 autoFocus
               />
               <button
@@ -491,9 +480,7 @@ export function PlaceCard({
               </button>
             </div>
           ) : (
-            <p className="text-sm font-semibold text-muted-foreground900">
-              {place.name}
-            </p>
+            <p className="text-muted-foreground900 text-sm font-semibold">{place.name}</p>
           )}
           <div className="mt-1 flex items-center gap-2">
             {isEditingTime ? (
@@ -520,7 +507,7 @@ export function PlaceCard({
                     }
                     setIsEditingTime(false);
                   }}
-                  className="rounded-lg border border-border bg-card px-2 py-0.5 text-[10px] focus:border-primary focus:outline-none"
+                  className="border-border bg-card focus:border-primary rounded-lg border px-2 py-0.5 text-[10px] focus:outline-none"
                   autoFocus
                 />
                 <button
@@ -552,7 +539,7 @@ export function PlaceCard({
               <div className="flex items-center gap-2">
                 {place.specificTime ? (
                   <span
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground500 cursor-pointer hover:text-primary transition"
+                    className="text-muted-foreground500 hover:text-primary flex cursor-pointer items-center gap-1 text-[10px] transition"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (onUpdateTime) setIsEditingTime(true);
@@ -564,7 +551,7 @@ export function PlaceCard({
                   </span>
                 ) : (
                   <span
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground400 cursor-pointer hover:text-primary transition"
+                    className="text-muted-foreground400 hover:text-primary flex cursor-pointer items-center gap-1 text-[10px] transition"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (onUpdateTime) setIsEditingTime(true);
@@ -577,7 +564,7 @@ export function PlaceCard({
                 )}
                 {place.latitude && place.longitude && (
                   <>
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground400">
+                    <span className="text-muted-foreground400 flex items-center gap-1 text-[10px]">
                       <MapPin className="h-3 w-3" />
                       Đã đặt vị trí
                     </span>
@@ -588,7 +575,7 @@ export function PlaceCard({
                           e.stopPropagation();
                           onShowNearbyPlaces();
                         }}
-                        className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+                        className="text-primary hover:text-primary/80 flex items-center gap-1 text-[10px] transition-colors"
                         title="Xem địa điểm xung quanh"
                       >
                         <Navigation className="h-3 w-3" />
@@ -609,7 +596,7 @@ export function PlaceCard({
                 e.stopPropagation();
                 setIsEditingName(true);
               }}
-              className="rounded-full bg-muted50 px-2 py-1 text-xs text-muted-foreground500 opacity-0 transition group-hover:opacity-100 hover:bg-muted100"
+              className="bg-muted50 text-muted-foreground500 hover:bg-muted100 rounded-full px-2 py-1 text-xs opacity-0 transition group-hover:opacity-100"
               title="Sửa tên địa điểm"
             >
               <Edit2 className="h-3 w-3" />
@@ -635,7 +622,7 @@ export function PlaceCard({
                 event.stopPropagation();
                 onDelete();
               }}
-              className="rounded-full bg-muted100 px-2 py-1 text-xs text-muted-foreground500 opacity-0 transition group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-500"
+              className="bg-muted100 text-muted-foreground500 rounded-full px-2 py-1 text-xs opacity-0 transition group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-500"
             >
               Remove
             </button>

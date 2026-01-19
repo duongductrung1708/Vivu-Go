@@ -100,35 +100,34 @@ const DemoSection = () => {
   const [currentDay, setCurrentDay] = useState(0);
 
   const nextDay = () => setCurrentDay((prev) => (prev + 1) % itinerary.length);
-  const prevDay = () =>
-    setCurrentDay((prev) => (prev - 1 + itinerary.length) % itinerary.length);
+  const prevDay = () => setCurrentDay((prev) => (prev - 1 + itinerary.length) % itinerary.length);
 
   return (
-    <section className="py-24 bg-background">
+    <section className="bg-background py-24">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="mb-12 text-center"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">
             Demo: <span className="text-gradient">3 Ngày Oanh Tạc Hà Nội</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
             Khám phá lịch trình mẫu hoàn hảo cho chuyến du lịch Hà Nội của bạn
           </p>
         </motion.div>
 
         {/* Day selector */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="mb-8 flex justify-center gap-4">
           {itinerary.map((day, index) => (
             <motion.button
               key={index}
               onClick={() => setCurrentDay(index)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-6 py-3 rounded-full font-semibold transition-all ${
+              className={`rounded-full px-6 py-3 font-semibold transition-all ${
                 currentDay === index
                   ? `bg-linear-to-r ${day.color} text-white shadow-lg`
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -140,23 +139,23 @@ const DemoSection = () => {
         </div>
 
         {/* Carousel */}
-        <div className="relative max-w-4xl mx-auto">
+        <div className="relative mx-auto max-w-4xl">
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 rounded-full w-12 h-12 bg-background shadow-lg"
+            className="bg-background absolute top-1/2 left-0 z-10 h-12 w-12 -translate-x-4 -translate-y-1/2 rounded-full shadow-lg"
             onClick={prevDay}
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="h-6 w-6" />
           </Button>
 
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 rounded-full w-12 h-12 bg-background shadow-lg"
+            className="bg-background absolute top-1/2 right-0 z-10 h-12 w-12 translate-x-4 -translate-y-1/2 rounded-full shadow-lg"
             onClick={nextDay}
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="h-6 w-6" />
           </Button>
 
           <motion.div
@@ -166,17 +165,15 @@ const DemoSection = () => {
             exit={{ opacity: 0, x: -50 }}
             className={`bg-linear-to-br ${itinerary[currentDay].color} rounded-3xl p-8 text-white shadow-2xl`}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div>
-                <span className="text-white/80 text-sm font-medium">
+                <span className="text-sm font-medium text-white/80">
                   Ngày {itinerary[currentDay].day}
                 </span>
-                <h3 className="text-2xl md:text-3xl font-bold">
-                  {itinerary[currentDay].title}
-                </h3>
+                <h3 className="text-2xl font-bold md:text-3xl">{itinerary[currentDay].title}</h3>
               </div>
               <div className="text-right">
-                <span className="text-white/80 text-sm">Tổng cộng</span>
+                <span className="text-sm text-white/80">Tổng cộng</span>
                 <p className="text-xl font-semibold">
                   {itinerary[currentDay].places.length} điểm đến
                 </p>
@@ -191,19 +188,19 @@ const DemoSection = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.02, x: 10 }}
-                  className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4"
+                  className="flex items-center gap-4 rounded-2xl bg-white/20 p-4 backdrop-blur-sm"
                 >
-                  <div className="w-12 h-12 bg-white/30 rounded-xl flex items-center justify-center text-2xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/30 text-2xl">
                     {place.icon}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-lg">{place.name}</h4>
-                    <div className="flex items-center gap-2 text-white/80 text-sm">
-                      <Clock className="w-4 h-4" />
+                    <h4 className="text-lg font-semibold">{place.name}</h4>
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <Clock className="h-4 w-4" />
                       <span>{place.time}</span>
                     </div>
                   </div>
-                  <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center font-bold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/30 font-bold">
                     {index + 1}
                   </div>
                 </motion.div>
@@ -213,11 +210,11 @@ const DemoSection = () => {
         </div>
 
         {/* Dots indicator */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="mt-6 flex justify-center gap-2">
           {itinerary.map((_, index) => (
             <motion.div
               key={index}
-              className={`w-3 h-3 rounded-full transition-all ${
+              className={`h-3 w-3 rounded-full transition-all ${
                 currentDay === index ? "bg-primary w-8" : "bg-muted"
               }`}
               whileHover={{ scale: 1.2 }}

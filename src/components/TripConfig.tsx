@@ -59,28 +59,25 @@ export function TripConfig() {
 
   const daysDiff =
     Math.ceil(
-      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
+      (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24),
     ) + 1;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-3xl bg-card p-3 shadow-sm border border-border"
+      className="bg-card border-border rounded-3xl border p-3 shadow-sm"
     >
       <div className="mb-3 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-primary" />
-        <h2 className="text-base font-semibold text-card-foreground">
-          Cấu hình chuyến đi
-        </h2>
+        <MapPin className="text-primary h-4 w-4" />
+        <h2 className="text-card-foreground text-base font-semibold">Cấu hình chuyến đi</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label
             htmlFor="trip-name"
-            className="mb-1 block text-xs font-medium text-muted-foreground"
+            className="text-muted-foreground mb-1 block text-xs font-medium"
           >
             Tên chuyến đi
           </label>
@@ -89,7 +86,7 @@ export function TripConfig() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-2xl border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="border-border bg-muted text-foreground focus:border-primary focus:ring-primary/20 w-full rounded-2xl border px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
             placeholder="VD: Chuyến đi Hà Nội"
             required
           />
@@ -109,7 +106,7 @@ export function TripConfig() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-2xl border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="border-border bg-muted text-foreground focus:border-primary focus:ring-primary/20 w-full rounded-2xl border px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               required
             />
           </div>
@@ -127,7 +124,7 @@ export function TripConfig() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-2xl border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="border-border bg-muted text-foreground focus:border-primary focus:ring-primary/20 w-full rounded-2xl border px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               required
             />
           </div>
@@ -173,7 +170,7 @@ export function TripConfig() {
                 const num = parseInt(val, 10);
                 setPeopleCount(Number.isNaN(num) ? "" : Math.max(1, num));
               }}
-              className="w-full rounded-2xl border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="border-border bg-muted text-foreground focus:border-primary focus:ring-primary/20 w-full rounded-2xl border px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               required
             />
           </div>
@@ -200,7 +197,7 @@ export function TripConfig() {
                 const num = parseInt(val, 10);
                 setTotalBudget(Number.isNaN(num) ? "" : Math.max(0, num));
               }}
-              className="w-full rounded-2xl border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="border-border bg-muted text-foreground focus:border-primary focus:ring-primary/20 w-full rounded-2xl border px-3 py-1.5 text-sm focus:ring-2 focus:outline-none"
               placeholder="Tùy chọn"
             />
           </div>
@@ -210,7 +207,7 @@ export function TripConfig() {
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full rounded-2xl bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+          className="bg-primary text-primary-foreground w-full rounded-2xl px-3 py-2 text-sm font-medium shadow-sm transition hover:opacity-90"
         >
           Lưu cấu hình
         </motion.button>

@@ -8,15 +8,15 @@ import Navbar from "@/components/Navbar";
 
 const HeroSection = () => {
   return (
-    <section className="min-h-screen relative overflow-hidden bg-linear-to-br from-background via-secondary/30 to-background">
+    <section className="from-background via-secondary/30 to-background relative min-h-screen overflow-hidden bg-linear-to-br">
       <Navbar />
       {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/40 rounded-full blur-3xl" />
+      <div className="bg-primary/20 absolute top-20 left-10 h-72 w-72 rounded-full blur-3xl" />
+      <div className="bg-accent/20 absolute right-10 bottom-20 h-96 w-96 rounded-full blur-3xl" />
+      <div className="bg-secondary/40 absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
 
-      <div className="container mx-auto px-4 py-20 relative z-10 mt-4">
-        <div className="flex flex-col lg:flex-row items-center gap-12 min-h-[80vh]">
+      <div className="relative z-10 container mx-auto mt-4 px-4 py-20">
+        <div className="flex min-h-[80vh] flex-col items-center gap-12 lg:flex-row">
           {/* Left Content */}
           <motion.div
             className="flex-1 text-center lg:text-left"
@@ -28,14 +28,14 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6"
+              className="bg-primary/10 text-primary mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="h-4 w-4" />
               <span className="text-sm font-medium">Vivu Go</span>
             </motion.div>
 
             <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+              className="mb-6 text-4xl leading-tight font-bold md:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -45,34 +45,35 @@ const HeroSection = () => {
             </motion.h1>
 
             <motion.p
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
+              className="text-muted-foreground mx-auto mb-8 max-w-xl text-lg md:text-xl lg:mx-0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              Công cụ thông minh giúp bạn tự thiết lập lịch trình, tối ưu đường
-              đi và quản lý chi phí linh hoạt cho mọi nhóm bạn.
+              Công cụ thông minh giúp bạn tự thiết lập lịch trình, tối ưu đường đi và quản lý chi
+              phí linh hoạt cho mọi nhóm bạn.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start"
             >
               <Link href="/dashboard">
                 <Button
                   size="lg"
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-8 py-6 text-lg font-semibold shadow-lg shadow-accent/30 hover:shadow-xl hover:shadow-accent/40 transition-all"
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-accent/30 hover:shadow-accent/40 rounded-full px-8 py-6 text-lg font-semibold shadow-lg transition-all hover:shadow-xl"
+                  aria-label="Bắt đầu lên lịch ngay"
                 >
-                  <MapPin className="w-5 h-5 mr-2" />
-                  Bắt đầu lên lịch ngay
+                  <MapPin className="h-5 w-5 sm:mr-2" />
+                  <span className="hidden sm:inline">Bắt đầu lên lịch ngay</span>
                 </Button>
               </Link>
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full px-8 py-6 text-lg font-semibold border-2"
+                className="rounded-full border-2 px-8 py-6 text-lg font-semibold"
               >
                 Xem demo
               </Button>
@@ -89,30 +90,23 @@ const HeroSection = () => {
             <div className="relative">
               {/* Phone mockup frame */}
               <motion.div
-                className="relative bg-card rounded-[3rem] p-3 shadow-2xl border-8 border-foreground/10 max-w-sm mx-auto"
+                className="bg-card border-foreground/10 relative mx-auto max-w-sm rounded-[3rem] border-8 p-3 shadow-2xl"
                 whileHover={{ y: -10, rotateY: 5 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <div className="bg-linear-to-br from-primary/20 via-secondary to-accent/20 rounded-[2.5rem] overflow-hidden aspect-9/16">
+                <div className="from-primary/20 via-secondary to-accent/20 aspect-9/16 overflow-hidden rounded-[2.5rem] bg-linear-to-br">
                   {/* Mock app content */}
-                  <div className="p-4 h-full flex flex-col">
-                    <div className="bg-background/80 backdrop-blur rounded-2xl p-3 mb-3">
-                      <p className="text-sm font-semibold text-foreground">
-                        📍 Hà Nội Trip
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        3 ngày • 5 điểm đến
-                      </p>
+                  <div className="flex h-full flex-col p-4">
+                    <div className="bg-background/80 mb-3 rounded-2xl p-3 backdrop-blur">
+                      <p className="text-foreground text-sm font-semibold">📍 Hà Nội Trip</p>
+                      <p className="text-muted-foreground text-xs">3 ngày • 5 điểm đến</p>
                     </div>
 
                     {/* Map placeholder */}
-                    <div className="flex-1 bg-secondary/50 rounded-2xl relative overflow-hidden">
-                      <div className="absolute inset-0 bg-linear-to-br from-primary/30 to-accent/30" />
+                    <div className="bg-secondary/50 relative flex-1 overflow-hidden rounded-2xl">
+                      <div className="from-primary/30 to-accent/30 absolute inset-0 bg-linear-to-br" />
                       {/* Route lines */}
-                      <svg
-                        className="absolute inset-0 w-full h-full"
-                        viewBox="0 0 100 100"
-                      >
+                      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100">
                         <motion.path
                           d="M 20 30 Q 40 20 50 40 T 80 60"
                           stroke="hsl(var(--primary))"
@@ -126,14 +120,14 @@ const HeroSection = () => {
                       </svg>
                       {/* Location markers */}
                       <motion.div
-                        className="absolute top-[25%] left-[18%] w-6 h-6 bg-accent rounded-full flex items-center justify-center shadow-lg"
+                        className="bg-accent absolute top-[25%] left-[18%] flex h-6 w-6 items-center justify-center rounded-full shadow-lg"
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
                         <span className="text-xs">1</span>
                       </motion.div>
                       <motion.div
-                        className="absolute top-[40%] left-[45%] w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg"
+                        className="bg-primary absolute top-[40%] left-[45%] flex h-6 w-6 items-center justify-center rounded-full shadow-lg"
                         animate={{ y: [0, -5, 0] }}
                         transition={{
                           duration: 2,
@@ -141,12 +135,10 @@ const HeroSection = () => {
                           delay: 0.3,
                         }}
                       >
-                        <span className="text-xs text-primary-foreground">
-                          2
-                        </span>
+                        <span className="text-primary-foreground text-xs">2</span>
                       </motion.div>
                       <motion.div
-                        className="absolute top-[55%] right-[18%] w-6 h-6 bg-accent rounded-full flex items-center justify-center shadow-lg"
+                        className="bg-accent absolute top-[55%] right-[18%] flex h-6 w-6 items-center justify-center rounded-full shadow-lg"
                         animate={{ y: [0, -5, 0] }}
                         transition={{
                           duration: 2,
@@ -160,26 +152,22 @@ const HeroSection = () => {
 
                     {/* Bottom cards */}
                     <div className="mt-3 space-y-2">
-                      <div className="bg-background/80 backdrop-blur rounded-xl p-2 flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                      <div className="bg-background/80 flex items-center gap-2 rounded-xl p-2 backdrop-blur">
+                        <div className="bg-accent/20 flex h-8 w-8 items-center justify-center rounded-lg">
                           🏛️
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium">Văn Miếu</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            9:00 - 11:00
-                          </p>
+                          <p className="text-muted-foreground text-[10px]">9:00 - 11:00</p>
                         </div>
                       </div>
-                      <div className="bg-background/80 backdrop-blur rounded-xl p-2 flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <div className="bg-background/80 flex items-center gap-2 rounded-xl p-2 backdrop-blur">
+                        <div className="bg-primary/20 flex h-8 w-8 items-center justify-center rounded-lg">
                           🌸
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium">Hồ Hoàn Kiếm</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            14:00 - 16:00
-                          </p>
+                          <p className="text-muted-foreground text-[10px]">14:00 - 16:00</p>
                         </div>
                       </div>
                     </div>
@@ -189,14 +177,14 @@ const HeroSection = () => {
 
               {/* Floating elements */}
               <motion.div
-                className="absolute -top-4 -right-4 bg-accent text-accent-foreground px-4 py-2 rounded-full shadow-lg text-sm font-medium"
+                className="bg-accent text-accent-foreground absolute -top-4 -right-4 rounded-full px-4 py-2 text-sm font-medium shadow-lg"
                 animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 🎯 Tối ưu lộ trình
               </motion.div>
               <motion.div
-                className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg text-sm font-medium"
+                className="bg-primary text-primary-foreground absolute -bottom-4 -left-4 rounded-full px-4 py-2 text-sm font-medium shadow-lg"
                 animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
               >

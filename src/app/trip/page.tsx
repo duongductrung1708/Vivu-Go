@@ -24,11 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Force dynamic rendering to prevent SSR issues with AuthProvider
@@ -115,14 +111,15 @@ export default function TripPage() {
       setShowSaveDialog(false);
       setSaveTitle("");
       setSaveDescription("");
-      
+
       // Redirect to dashboard after saving
       router.push("/dashboard");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.",
+        description:
+          error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.",
       });
     }
   };
@@ -132,61 +129,61 @@ export default function TripPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
+    <div className="bg-background text-foreground flex h-screen overflow-hidden font-sans">
       <Navbar variant="fixed" />
-      <main className="flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24 relative">
+      <main className="relative flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24">
         {/* Toggle Sidebar Button */}
         <button
           type="button"
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className={`fixed z-50 rounded-full bg-card border border-border p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${
+          className={`bg-card border-border fixed z-50 rounded-full border p-2 shadow-lg transition-all hover:scale-110 hover:shadow-xl ${
             isSidebarCollapsed
-              ? "left-4 top-20"
+              ? "top-20 left-4"
               : isMobile
-              ? "left-4 top-20"
-              : "left-[calc(420px+0.5rem)] top-20"
+                ? "top-20 left-4"
+                : "top-20 left-[calc(420px+0.5rem)]"
           }`}
           aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
         >
           {isSidebarCollapsed ? (
-            <PanelLeftOpen className="h-5 w-5 text-foreground" />
+            <PanelLeftOpen className="text-foreground h-5 w-5" />
           ) : (
-            <PanelLeftClose className="h-5 w-5 text-foreground" />
+            <PanelLeftClose className="text-foreground h-5 w-5" />
           )}
         </button>
 
         {/* Mobile: Use Sheet (Drawer) */}
         {isMobile ? (
           <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
-            <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 overflow-hidden">
+            <SheetContent side="left" className="w-[85vw] overflow-hidden p-0 sm:w-[420px]">
               <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
               <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
-                <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
+                  <div className="mb-3 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                         Tổng quan ngân sách
                       </p>
-                      <h2 className="text-base font-semibold text-card-foreground">
+                      <h2 className="text-card-foreground text-base font-semibold">
                         {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
                       </h2>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
                           Tổng cộng
                         </p>
-                        <p className="text-sm font-semibold text-card-foreground">
+                        <p className="text-card-foreground text-sm font-semibold">
                           {totalCost.toLocaleString("vi-VN")} đ
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-muted-foreground text-[11px]">
                           {costPerPerson.toLocaleString("vi-VN")} đ / người
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowConfig(!showConfig)}
-                        className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
                         title="Chỉnh sửa cấu hình chuyến đi"
                       >
                         <Settings className="h-4 w-4" />
@@ -195,11 +192,12 @@ export default function TripPage() {
                   </div>
                   <Button
                     onClick={() => setShowSaveDialog(true)}
-                    className="w-full bg-linear-to-r from-primary to-accent hover:opacity-90"
+                    className="from-primary to-accent w-full bg-linear-to-r hover:opacity-90"
                     disabled={trip.days.length === 0}
+                    aria-label="Lưu lịch trình"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    Lưu lịch trình
+                    <Save className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Lưu lịch trình</span>
                   </Button>
                 </div>
 
@@ -219,62 +217,61 @@ export default function TripPage() {
           /* Desktop: Use regular sidebar */
           <section
             className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
-              isSidebarCollapsed
-                ? "w-0 opacity-0 pointer-events-none"
-                : "w-[420px] opacity-100"
+              isSidebarCollapsed ? "pointer-events-none w-0 opacity-0" : "w-[420px] opacity-100"
             }`}
           >
-          <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Tổng quan ngân sách
-                </p>
-                <h2 className="text-base font-semibold text-card-foreground">
-                  {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
-                </h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    Tổng cộng
+            <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Tổng quan ngân sách
                   </p>
-                  <p className="text-sm font-semibold text-card-foreground">
-                    {totalCost.toLocaleString("vi-VN")} đ
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {costPerPerson.toLocaleString("vi-VN")} đ / người
-                  </p>
+                  <h2 className="text-card-foreground text-base font-semibold">
+                    {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
+                  </h2>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowConfig(!showConfig)}
-                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  title="Chỉnh sửa cấu hình chuyến đi"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                      Tổng cộng
+                    </p>
+                    <p className="text-card-foreground text-sm font-semibold">
+                      {totalCost.toLocaleString("vi-VN")} đ
+                    </p>
+                    <p className="text-muted-foreground text-[11px]">
+                      {costPerPerson.toLocaleString("vi-VN")} đ / người
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfig(!showConfig)}
+                    className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
+                    title="Chỉnh sửa cấu hình chuyến đi"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
+              <Button
+                onClick={() => setShowSaveDialog(true)}
+                className="from-primary to-accent w-full bg-linear-to-r hover:opacity-90"
+                disabled={trip.days.length === 0}
+                aria-label="Lưu lịch trình"
+              >
+                <Save className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Lưu lịch trình</span>
+              </Button>
             </div>
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              className="w-full bg-linear-to-r from-primary to-accent hover:opacity-90"
-              disabled={trip.days.length === 0}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Lưu lịch trình
-            </Button>
-          </div>
 
-          {showConfig && (
-            <div className="shrink-0 overflow-y-auto">
-              <TripConfig />
+            {showConfig && (
+              <div className="shrink-0 overflow-y-auto">
+                <TripConfig />
+              </div>
+            )}
+
+            <div className="flex-1 overflow-hidden">
+              <Timeline />
             </div>
-          )}
-
-          <div className="flex-1 overflow-hidden">
-            <Timeline />
-          </div>
           </section>
         )}
 
@@ -292,7 +289,7 @@ export default function TripPage() {
               Lưu lịch trình của bạn vào database để quản lý và chia sẻ
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="mt-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="save-title">Tên lịch trình *</Label>
               <Input
@@ -312,17 +309,13 @@ export default function TripPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowSaveDialog(false)}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={() => setShowSaveDialog(false)} className="flex-1">
                 Hủy
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={!saveTitle.trim() || createItinerary.isPending}
-                className="flex-1 bg-linear-to-r from-primary to-accent hover:opacity-90"
+                className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
               >
                 {createItinerary.isPending ? "Đang lưu..." : "Lưu"}
               </Button>
@@ -333,4 +326,3 @@ export default function TripPage() {
     </div>
   );
 }
-

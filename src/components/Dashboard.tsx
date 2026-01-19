@@ -19,13 +19,7 @@ import {
 } from "lucide-react";
 import { ItineraryShareDialog } from "@/components/ItineraryShareDialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,11 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  useItineraries,
-  useDeleteItinerary,
-  type Itinerary,
-} from "@/hooks/useItineraries";
+import { useItineraries, useDeleteItinerary, type Itinerary } from "@/hooks/useItineraries";
 import {
   usePendingInvitations,
   useUpdateCollaborationStatus,
@@ -66,13 +56,10 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { data: itineraries, isLoading } = useItineraries();
   const deleteItinerary = useDeleteItinerary();
-  const { data: pendingInvitations, isLoading: isLoadingInvitations } =
-    usePendingInvitations();
+  const { data: pendingInvitations, isLoading: isLoadingInvitations } = usePendingInvitations();
   const updateCollaborationStatus = useUpdateCollaborationStatus();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itineraryToDelete, setItineraryToDelete] = useState<string | null>(
-    null
-  );
+  const [itineraryToDelete, setItineraryToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -109,10 +96,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleAcceptInvitation = async (
-    collaborationId: string,
-    itineraryId: string
-  ) => {
+  const handleAcceptInvitation = async (collaborationId: string, itineraryId: string) => {
     try {
       await updateCollaborationStatus.mutateAsync({
         collaborationId,
@@ -132,10 +116,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeclineInvitation = async (
-    collaborationId: string,
-    itineraryId: string
-  ) => {
+  const handleDeclineInvitation = async (collaborationId: string, itineraryId: string) => {
     try {
       await updateCollaborationStatus.mutateAsync({
         collaborationId,
@@ -160,12 +141,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-secondary/20 to-lavender/20">
+    <div className="from-background via-secondary/20 to-lavender/20 min-h-screen bg-linear-to-br">
       <Navbar variant="fixed" />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        <div className="flex items-center justify-between mb-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
+        <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold">Lịch trình của bạn</h2>
             <p className="text-muted-foreground mt-1">
@@ -175,26 +156,24 @@ export default function Dashboard() {
 
           <Button
             onClick={handleCreateNew}
-            className="bg-linear-to-r from-primary to-accent hover:opacity-90"
+            className="from-primary to-accent bg-linear-to-r hover:opacity-90"
+            aria-label="Tạo lịch trình mới"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Tạo lịch trình mới
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tạo lịch trình mới</span>
           </Button>
         </div>
 
         {/* Pending Invitations */}
         {pendingInvitations && pendingInvitations.length > 0 && (
-          <div className="mb-8 p-4 bg-muted/50 border border-border rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">
-              Lời mời cộng tác đang chờ
-            </h3>
+          <div className="bg-muted/50 border-border mb-8 rounded-lg border p-4">
+            <h3 className="mb-3 text-lg font-semibold">Lời mời cộng tác đang chờ</h3>
             <div className="space-y-3">
               {pendingInvitations.map((invitation) => {
-                const invitationWithInviter =
-                  invitation as typeof invitation & {
-                    inviter_name?: string;
-                    inviter_email?: string;
-                  };
+                const invitationWithInviter = invitation as typeof invitation & {
+                  inviter_name?: string;
+                  inviter_email?: string;
+                };
                 const itinerary = invitation.itinerary as {
                   id?: string;
                   title?: string;
@@ -213,49 +192,40 @@ export default function Dashboard() {
                   tripData?.days?.reduce(
                     (sum: number, day: { places?: Array<unknown> }) =>
                       sum + (day.places?.length || 0),
-                    0
+                    0,
                   ) || 0;
-                const startDate = itinerary?.start_date
-                  ? new Date(itinerary.start_date)
-                  : null;
-                const inviteDate = invitation.created_at
-                  ? new Date(invitation.created_at)
-                  : null;
+                const startDate = itinerary?.start_date ? new Date(itinerary.start_date) : null;
+                const inviteDate = invitation.created_at ? new Date(invitation.created_at) : null;
 
                 return (
-                  <Card key={invitation.id} className="border border-border">
+                  <Card key={invitation.id} className="border-border border">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-3">
                           <div>
-                            <h4 className="font-semibold text-lg mb-1">
+                            <h4 className="mb-1 text-lg font-semibold">
                               {itinerary?.title || "Lịch trình"}
                             </h4>
                             {itinerary?.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
+                              <p className="text-muted-foreground line-clamp-2 text-sm">
                                 {itinerary.description}
                               </p>
                             )}
                             {/* Inviter info */}
                             {invitationWithInviter.inviter_name ||
                             invitationWithInviter.inviter_email ? (
-                              <div className="mt-2 text-sm text-muted-foreground">
-                                <span className="font-medium">
-                                  Được mời bởi:{" "}
-                                </span>
+                              <div className="text-muted-foreground mt-2 text-sm">
+                                <span className="font-medium">Được mời bởi: </span>
                                 <span>
                                   {invitationWithInviter.inviter_name &&
-                                  invitationWithInviter.inviter_name !==
-                                    "Unknown"
+                                  invitationWithInviter.inviter_name !== "Unknown"
                                     ? invitationWithInviter.inviter_name
-                                    : invitationWithInviter.inviter_email ||
-                                      "Người dùng"}
+                                    : invitationWithInviter.inviter_email || "Người dùng"}
                                 </span>
                                 {invitationWithInviter.inviter_email &&
                                   invitationWithInviter.inviter_name &&
-                                  invitationWithInviter.inviter_name !==
-                                    "Unknown" && (
-                                    <span className="text-xs ml-1">
+                                  invitationWithInviter.inviter_name !== "Unknown" && (
+                                    <span className="ml-1 text-xs">
                                       ({invitationWithInviter.inviter_email})
                                     </span>
                                   )}
@@ -266,47 +236,40 @@ export default function Dashboard() {
                           {/* Stats */}
                           <div className="flex flex-wrap gap-3">
                             {daysCount > 0 && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span className="text-xs font-medium">
-                                  {daysCount} ngày
-                                </span>
+                              <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-md px-2.5 py-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                <span className="text-xs font-medium">{daysCount} ngày</span>
                               </div>
                             )}
                             {placesCount > 0 && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent/10 text-accent">
-                                <MapPin className="w-3.5 h-3.5" />
-                                <span className="text-xs font-medium">
-                                  {placesCount} điểm
-                                </span>
+                              <div className="bg-accent/10 text-accent flex items-center gap-1.5 rounded-md px-2.5 py-1">
+                                <MapPin className="h-3.5 w-3.5" />
+                                <span className="text-xs font-medium">{placesCount} điểm</span>
                               </div>
                             )}
                             {(itinerary?.people_count ?? 0) > 0 && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground">
-                                <Users className="w-3.5 h-3.5" />
+                              <div className="bg-secondary text-secondary-foreground flex items-center gap-1.5 rounded-md px-2.5 py-1">
+                                <Users className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">
                                   {itinerary?.people_count} người
                                 </span>
                               </div>
                             )}
                             {(itinerary?.total_budget ?? 0) > 0 && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-500/10 text-green-600 dark:text-green-400">
-                                <DollarSign className="w-3.5 h-3.5" />
+                              <div className="flex items-center gap-1.5 rounded-md bg-green-500/10 px-2.5 py-1 text-green-600 dark:text-green-400">
+                                <DollarSign className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">
-                                  {itinerary?.total_budget?.toLocaleString(
-                                    "vi-VN"
-                                  )}{" "}
-                                  đ
+                                  {itinerary?.total_budget?.toLocaleString("vi-VN")} đ
                                 </span>
                               </div>
                             )}
                           </div>
 
                           {/* Details */}
-                          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                          <div className="text-muted-foreground flex flex-wrap gap-4 text-xs">
                             {startDate && (
                               <div className="flex items-center gap-1.5">
-                                <Calendar className="w-3.5 h-3.5" />
+                                <Calendar className="h-3.5 w-3.5" />
                                 <span>
                                   {format(startDate, "dd/MM/yyyy", {
                                     locale: vi,
@@ -316,7 +279,7 @@ export default function Dashboard() {
                             )}
                             {inviteDate && (
                               <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
+                                <Clock className="h-3.5 w-3.5" />
                                 <span>
                                   Mời ngày{" "}
                                   {format(inviteDate, "dd/MM/yyyy", {
@@ -326,45 +289,39 @@ export default function Dashboard() {
                               </div>
                             )}
                             <div className="flex items-center gap-1.5">
-                              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium">
-                                {invitation.permission === "edit"
-                                  ? "Chỉnh sửa"
-                                  : "Đọc"}
+                              <span className="bg-primary/10 text-primary rounded px-2 py-0.5 text-xs font-medium">
+                                {invitation.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
                               </span>
                             </div>
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-2 shrink-0">
+                        <div className="flex shrink-0 flex-col gap-2">
                           <Button
                             size="sm"
                             onClick={() =>
-                              handleAcceptInvitation(
-                                invitation.id,
-                                invitation.itinerary_id
-                              )
+                              handleAcceptInvitation(invitation.id, invitation.itinerary_id)
                             }
                             disabled={updateCollaborationStatus.isPending}
                             className="w-full"
+                            aria-label="Chấp nhận lời mời"
                           >
-                            <Check className="w-4 h-4 mr-1" />
-                            Chấp nhận
+                            <Check className="h-4 w-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Chấp nhận</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              handleDeclineInvitation(
-                                invitation.id,
-                                invitation.itinerary_id
-                              )
+                              handleDeclineInvitation(invitation.id, invitation.itinerary_id)
                             }
                             disabled={updateCollaborationStatus.isPending}
                             className="w-full"
+                            aria-label="Từ chối lời mời"
                           >
-                            <X className="w-4 h-4 mr-1" />
-                            Từ chối
+                            <X className="h-4 w-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Từ chối</span>
                           </Button>
                         </div>
                       </div>
@@ -381,36 +338,29 @@ export default function Dashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16"
+            className="py-16 text-center"
           >
-            <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
-              <MapPin className="w-12 h-12 text-primary" />
+            <div className="bg-secondary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full">
+              <MapPin className="text-primary h-12 w-12" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">
-              Chưa có lịch trình nào
-            </h3>
+            <h3 className="mb-2 text-xl font-semibold">Chưa có lịch trình nào</h3>
             <p className="text-muted-foreground mb-6">
               Bắt đầu tạo lịch trình đầu tiên của bạn ngay!
             </p>
             <Button onClick={handleCreateNew}>
-              <Plus className="w-4 h-4 mr-2" />
-              Tạo lịch trình mới
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Tạo lịch trình mới</span>
             </Button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence>
               {itineraries?.map((itinerary, index) => {
                 const tripData = itinerary.trip_data;
                 const daysCount = tripData?.days?.length || 0;
                 const placesCount =
-                  tripData?.days?.reduce(
-                    (sum, day) => sum + (day.places?.length || 0),
-                    0
-                  ) || 0;
-                const startDate = itinerary.start_date
-                  ? new Date(itinerary.start_date)
-                  : null;
+                  tripData?.days?.reduce((sum, day) => sum + (day.places?.length || 0), 0) || 0;
+                const startDate = itinerary.start_date ? new Date(itinerary.start_date) : null;
 
                 return (
                   <ItineraryCard
@@ -436,14 +386,11 @@ export default function Dashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa lịch trình này? Hành động này không thể
-              hoàn tác.
+              Bạn có chắc chắn muốn xóa lịch trình này? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItineraryToDelete(null)}>
-              Hủy
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setItineraryToDelete(null)}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -486,22 +433,22 @@ function ItineraryCard({
       transition={{ delay: index * 0.1 }}
     >
       <Card
-        className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 border-border hover:border-primary/50 bg-linear-to-br from-card to-card/50 overflow-hidden relative"
+        className="group border-border hover:border-primary/50 from-card to-card/50 relative cursor-pointer overflow-hidden border-2 bg-linear-to-br transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
         onClick={() => router.push(`/itinerary/${itinerary.id}`)}
       >
         {/* Gradient overlay on hover */}
-        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="from-primary/5 to-accent/5 absolute inset-0 bg-linear-to-br via-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        <CardHeader className="pb-4 relative z-10">
+        <CardHeader className="relative z-10 pb-4">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <CardTitle className="text-xl font-bold line-clamp-1 group-hover:text-primary transition-colors">
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex items-center gap-2">
+                <CardTitle className="group-hover:text-primary line-clamp-1 text-xl font-bold transition-colors">
                   {itinerary.title}
                 </CardTitle>
                 {itinerary.is_public && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
-                    <Globe className="w-3 h-3" />
+                  <div className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2 py-0.5 text-xs">
+                    <Globe className="h-3 w-3" />
                     <span>Công khai</span>
                   </div>
                 )}
@@ -517,9 +464,9 @@ function ItineraryCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 shrink-0 opacity-60 transition-opacity hover:opacity-100"
                 >
-                  <MoreVertical className="w-4 h-4" />
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -529,7 +476,7 @@ function ItineraryCard({
                     router.push(`/itinerary/${itinerary.id}`);
                   }}
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="mr-2 h-4 w-4" />
                   Chỉnh sửa
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -538,14 +485,14 @@ function ItineraryCard({
                     router.push(`/memory?itineraryId=${itinerary.id}`);
                   }}
                 >
-                  <Camera className="w-4 h-4 mr-2" />
+                  <Camera className="mr-2 h-4 w-4" />
                   Kỷ niệm (ảnh từng ngày)
                 </DropdownMenuItem>
                 {isOwner && (
                   <>
                     <ItineraryShareDialog itineraryId={itinerary.id}>
                       <DropdownMenuItem>
-                        <Share2 className="w-4 h-4 mr-2" />
+                        <Share2 className="mr-2 h-4 w-4" />
                         Chia sẻ
                       </DropdownMenuItem>
                     </ItineraryShareDialog>
@@ -556,7 +503,7 @@ function ItineraryCard({
                         onDelete(itinerary.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2 className="mr-2 h-4 w-4" />
                       Xóa
                     </DropdownMenuItem>
                   </>
@@ -570,23 +517,21 @@ function ItineraryCard({
           {/* Stats Row */}
           <div className="flex flex-wrap gap-3">
             {daysCount > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary">
-                <Clock className="w-4 h-4" />
+              <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-lg px-3 py-1.5">
+                <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">{daysCount} ngày</span>
               </div>
             )}
             {placesCount > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 text-accent">
-                <MapPin className="w-4 h-4" />
+              <div className="bg-accent/10 text-accent flex items-center gap-1.5 rounded-lg px-3 py-1.5">
+                <MapPin className="h-4 w-4" />
                 <span className="text-sm font-medium">{placesCount} điểm</span>
               </div>
             )}
             {itinerary.people_count > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground">
-                <Users className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  {itinerary.people_count} người
-                </span>
+              <div className="bg-secondary text-secondary-foreground flex items-center gap-1.5 rounded-lg px-3 py-1.5">
+                <Users className="h-4 w-4" />
+                <span className="text-sm font-medium">{itinerary.people_count} người</span>
               </div>
             )}
           </div>
@@ -594,13 +539,11 @@ function ItineraryCard({
           {/* Info Row */}
           <div className="flex flex-wrap gap-4 text-sm">
             {startDate && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="w-4 h-4 shrink-0" />
+              <div className="text-muted-foreground flex items-center gap-2">
+                <Calendar className="h-4 w-4 shrink-0" />
                 <div>
-                  <div className="text-xs text-muted-foreground/70">
-                    Ngày bắt đầu
-                  </div>
-                  <div className="font-medium text-foreground">
+                  <div className="text-muted-foreground/70 text-xs">Ngày bắt đầu</div>
+                  <div className="text-foreground font-medium">
                     {format(startDate, "dd/MM/yyyy", {
                       locale: vi,
                     })}
@@ -609,13 +552,11 @@ function ItineraryCard({
               </div>
             )}
             {itinerary.total_budget > 0 && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <DollarSign className="w-4 h-4 shrink-0" />
+              <div className="text-muted-foreground flex items-center gap-2">
+                <DollarSign className="h-4 w-4 shrink-0" />
                 <div>
-                  <div className="text-xs text-muted-foreground/70">
-                    Ngân sách
-                  </div>
-                  <div className="font-semibold text-foreground">
+                  <div className="text-muted-foreground/70 text-xs">Ngân sách</div>
+                  <div className="text-foreground font-semibold">
                     {itinerary.total_budget.toLocaleString("vi-VN")} đ
                   </div>
                 </div>

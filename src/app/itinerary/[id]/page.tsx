@@ -2,7 +2,16 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Settings, Save, FileDown, PanelLeftClose, PanelLeftOpen, Calendar, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Settings,
+  Save,
+  FileDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Calendar,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/Loading";
 import { MapContainer } from "@/components/MapContainer";
@@ -10,11 +19,7 @@ import { Timeline } from "@/components/Timeline";
 import { PackingList } from "@/components/PackingList";
 import { TripConfig } from "@/components/TripConfig";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,7 +44,8 @@ export default function ItineraryDetailPage() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { data: itinerary, isLoading } = useItinerary(itineraryId);
-  const { data: canEdit = false, isLoading: isLoadingPermission } = useCanEditItinerary(itineraryId);
+  const { data: canEdit = false, isLoading: isLoadingPermission } =
+    useCanEditItinerary(itineraryId);
   const updateItinerary = useUpdateItinerary();
   const { trip, setTrip, getTotalCost, getCostPerPerson } = useTripStore();
   const [showConfig, setShowConfig] = useState(false);
@@ -142,10 +148,8 @@ export default function ItineraryDetailPage() {
         name: itinerary.title || itinerary.trip_data.name,
         startDate: itinerary.start_date || itinerary.trip_data.startDate,
         endDate: itinerary.end_date || itinerary.trip_data.endDate,
-        peopleCount:
-          itinerary.people_count ?? itinerary.trip_data.peopleCount,
-        totalBudget:
-          itinerary.total_budget ?? itinerary.trip_data.totalBudget,
+        peopleCount: itinerary.people_count ?? itinerary.trip_data.peopleCount,
+        totalBudget: itinerary.total_budget ?? itinerary.trip_data.totalBudget,
       };
       setTrip(newTrip);
       // Update last saved reference
@@ -172,18 +176,20 @@ export default function ItineraryDetailPage() {
 
       // Debounce DB writes to avoid spamming updates while user pans/changes profile
       routeCacheSaveTimeoutRef.current = setTimeout(() => {
-        updateItinerary.mutateAsync({
-          id: itineraryId,
-          updates: {
-            route_cache: nextCache,
-          },
-          expectedVersion: undefined,
-        }).catch((error: unknown) => {
-          console.error("Failed to persist route cache:", error);
-        });
+        updateItinerary
+          .mutateAsync({
+            id: itineraryId,
+            updates: {
+              route_cache: nextCache,
+            },
+            expectedVersion: undefined,
+          })
+          .catch((error: unknown) => {
+            console.error("Failed to persist route cache:", error);
+          });
       }, 1200);
     },
-    [canEdit, itineraryId, updateItinerary]
+    [canEdit, itineraryId, updateItinerary],
   );
 
   const handleSave = async () => {
@@ -234,7 +240,8 @@ export default function ItineraryDetailPage() {
         description: "Cập nhật lịch trình thành công.",
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.";
+      const errorMessage =
+        error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.";
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -249,12 +256,10 @@ export default function ItineraryDetailPage() {
 
   if (!itinerary) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-3">
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="space-y-3 text-center">
           <p className="text-lg font-semibold">Không tìm thấy lịch trình</p>
-          <Button onClick={() => router.push("/dashboard")}>
-            Quay lại Dashboard
-          </Button>
+          <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
         </div>
       </div>
     );
@@ -295,61 +300,62 @@ export default function ItineraryDetailPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
+    <div className="bg-background text-foreground flex h-screen overflow-hidden font-sans">
       <Navbar variant="fixed" itineraryId={itineraryId} />
-      <main className="flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24 relative">
+      <main className="relative flex h-full w-full flex-col gap-2 p-2 pt-24 md:flex-row md:gap-3 md:p-3 md:pt-24">
         {/* Toggle Sidebar Button */}
         <button
           type="button"
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className={`fixed z-50 rounded-full bg-card border border-border p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${isSidebarCollapsed
-            ? "left-4 top-20"
-            : isMobile
-              ? "left-4 top-20"
-              : "left-[calc(420px+0.5rem)] top-20"
-            }`}
+          className={`bg-card border-border fixed z-50 rounded-full border p-2 shadow-lg transition-all hover:scale-110 hover:shadow-xl ${
+            isSidebarCollapsed
+              ? "top-20 left-4"
+              : isMobile
+                ? "top-20 left-4"
+                : "top-20 left-[calc(420px+0.5rem)]"
+          }`}
           aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
         >
           {isSidebarCollapsed ? (
-            <PanelLeftOpen className="h-5 w-5 text-foreground" />
+            <PanelLeftOpen className="text-foreground h-5 w-5" />
           ) : (
-            <PanelLeftClose className="h-5 w-5 text-foreground" />
+            <PanelLeftClose className="text-foreground h-5 w-5" />
           )}
         </button>
 
         {/* Mobile: Use Sheet (Drawer) */}
         {isMobile ? (
           <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
-            <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 overflow-hidden">
+            <SheetContent side="left" className="w-[85vw] overflow-hidden p-0 sm:w-[420px]">
               <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
               <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
                 {showInfoCard && (
-                  <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                           Lịch trình đã lưu
                         </p>
-                        <h2 className="text-base font-semibold text-card-foreground">
+                        <h2 className="text-card-foreground text-base font-semibold">
                           {trip.name}
                         </h2>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
-                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
                             Tổng cộng
                           </p>
-                          <p className="text-sm font-semibold text-card-foreground">
+                          <p className="text-card-foreground text-sm font-semibold">
                             {totalCost.toLocaleString("vi-VN")} đ
                           </p>
-                          <p className="text-[11px] text-muted-foreground">
+                          <p className="text-muted-foreground text-[11px]">
                             {costPerPerson.toLocaleString("vi-VN")} đ / người
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setShowConfig(!showConfig)}
-                          className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
                           title="Chỉnh sửa cấu hình chuyến đi"
                         >
                           <Settings className="h-4 w-4" />
@@ -357,7 +363,7 @@ export default function ItineraryDetailPage() {
                         <button
                           type="button"
                           onClick={() => setShowInfoCard(false)}
-                          className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
                           title="Ẩn thông tin lịch trình"
                         >
                           <ChevronUp className="h-4 w-4" />
@@ -365,45 +371,58 @@ export default function ItineraryDetailPage() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => router.push("/dashboard")}
-                      >
-                        Trở lại
-                      </Button>
-                      <Button
-                        onClick={handleSave}
-                        className="flex-1 bg-linear-to-r from-primary to-accent hover:opacity-90"
-                        disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
-                        title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => router.push("/dashboard")}
+                        >
+                          Trở lại
+                        </Button>
+                        <Button
+                          onClick={handleSave}
+                          className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
+                          disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
+                          title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
+                          aria-label={updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                        >
+                          <Save className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">
+                            {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                          </span>
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={handleExportPdf}
+                          aria-label="Xuất PDF"
+                        >
+                          <FileDown className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Xuất PDF</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={handleExportGoogleCalendar}
+                          aria-label="Xuất Google Calendar"
+                        >
+                          <Calendar className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Google Calendar</span>
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1" onClick={handleExportPdf}>
-                        <FileDown className="w-4 h-4 mr-2" />
-                        Xuất PDF
-                      </Button>
-                      <Button variant="outline" className="flex-1" onClick={handleExportGoogleCalendar}>
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Google Calendar
-                      </Button>
-                    </div>
-                  </div>
                   </div>
                 )}
                 {!showInfoCard && (
                   <button
                     type="button"
                     onClick={() => setShowInfoCard(true)}
-                    className="shrink-0 rounded-3xl bg-card p-2 shadow-sm border border-border text-center hover:bg-muted transition-colors"
+                    className="bg-card border-border hover:bg-muted shrink-0 rounded-3xl border p-2 text-center shadow-sm transition-colors"
                     title="Hiện thông tin lịch trình"
                   >
-                    <ChevronDown className="h-4 w-4 mx-auto text-muted-foreground" />
+                    <ChevronDown className="text-muted-foreground mx-auto h-4 w-4" />
                   </button>
                 )}
 
@@ -413,18 +432,22 @@ export default function ItineraryDetailPage() {
                   </div>
                 )}
 
-                <div className="flex-1 overflow-hidden flex flex-col">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-                    <TabsList className="grid w-full grid-cols-2 mb-2">
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex flex-1 flex-col overflow-hidden"
+                  >
+                    <TabsList className="mb-2 grid w-full grid-cols-2">
                       <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
                       <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="timeline" className="flex-1 overflow-hidden mt-0">
+                    <TabsContent value="timeline" className="mt-0 flex-1 overflow-hidden">
                       <div className="h-full overflow-y-auto">
                         <Timeline />
                       </div>
                     </TabsContent>
-                    <TabsContent value="packing" className="flex-1 overflow-hidden mt-0">
+                    <TabsContent value="packing" className="mt-0 flex-1 overflow-hidden">
                       <div className="h-full overflow-y-auto">
                         <PackingList itineraryId={itineraryId} />
                       </div>
@@ -437,38 +460,35 @@ export default function ItineraryDetailPage() {
         ) : (
           /* Desktop: Use regular sidebar */
           <section
-            className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${isSidebarCollapsed
-              ? "w-0 opacity-0 pointer-events-none"
-              : "w-[420px] opacity-100"
-              }`}
+            className={`flex h-full flex-col gap-2 overflow-hidden transition-all duration-300 ${
+              isSidebarCollapsed ? "pointer-events-none w-0 opacity-0" : "w-[420px] opacity-100"
+            }`}
           >
             {showInfoCard ? (
-              <div className="shrink-0 rounded-3xl bg-card p-3 shadow-sm border border-border">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                       Lịch trình đã lưu
                     </p>
-                    <h2 className="text-base font-semibold text-card-foreground">
-                      {trip.name}
-                    </h2>
+                    <h2 className="text-card-foreground text-base font-semibold">{trip.name}</h2>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-right">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
                         Tổng cộng
                       </p>
-                      <p className="text-sm font-semibold text-card-foreground">
+                      <p className="text-card-foreground text-sm font-semibold">
                         {totalCost.toLocaleString("vi-VN")} đ
                       </p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-muted-foreground text-[11px]">
                         {costPerPerson.toLocaleString("vi-VN")} đ / người
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowConfig(!showConfig)}
-                      className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
                       title="Chỉnh sửa cấu hình chuyến đi"
                     >
                       <Settings className="h-4 w-4" />
@@ -476,7 +496,7 @@ export default function ItineraryDetailPage() {
                     <button
                       type="button"
                       onClick={() => setShowInfoCard(false)}
-                      className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
                       title="Ẩn thông tin lịch trình"
                     >
                       <ChevronUp className="h-4 w-4" />
@@ -484,44 +504,57 @@ export default function ItineraryDetailPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => router.push("/dashboard")}
-                  >
-                    Trở lại
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    className="flex-1 bg-linear-to-r from-primary to-accent hover:opacity-90"
-                    disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
-                    title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => router.push("/dashboard")}
+                    >
+                      Trở lại
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
+                      disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
+                      title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
+                      aria-label={updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                    >
+                      <Save className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">
+                        {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                      </span>
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleExportPdf}
+                      aria-label="Xuất PDF"
+                    >
+                      <FileDown className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Xuất PDF</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleExportGoogleCalendar}
+                      aria-label="Xuất Google Calendar"
+                    >
+                      <Calendar className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Google Calendar</span>
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={handleExportPdf}>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Xuất PDF
-                  </Button>
-                  <Button variant="outline" className="flex-1" onClick={handleExportGoogleCalendar}>
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Google Calendar
-                  </Button>
-                </div>
-              </div>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setShowInfoCard(true)}
-                className="shrink-0 rounded-3xl bg-card p-2 shadow-sm border border-border text-center hover:bg-muted transition-colors w-full"
+                className="bg-card border-border hover:bg-muted w-full shrink-0 rounded-3xl border p-2 text-center shadow-sm transition-colors"
                 title="Hiện thông tin lịch trình"
               >
-                <ChevronDown className="h-4 w-4 mx-auto text-muted-foreground" />
+                <ChevronDown className="text-muted-foreground mx-auto h-4 w-4" />
               </button>
             )}
 
@@ -531,18 +564,22 @@ export default function ItineraryDetailPage() {
               </div>
             )}
 
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-                <TabsList className="grid w-full grid-cols-2 mb-2">
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="flex flex-1 flex-col overflow-hidden"
+              >
+                <TabsList className="mb-2 grid w-full grid-cols-2">
                   <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
                   <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
                 </TabsList>
-                <TabsContent value="timeline" className="flex-1 overflow-hidden mt-0">
+                <TabsContent value="timeline" className="mt-0 flex-1 overflow-hidden">
                   <div className="h-full overflow-y-auto">
                     <Timeline />
                   </div>
                 </TabsContent>
-                <TabsContent value="packing" className="flex-1 overflow-hidden mt-0">
+                <TabsContent value="packing" className="mt-0 flex-1 overflow-hidden">
                   <div className="h-full overflow-y-auto">
                     <PackingList itineraryId={itineraryId} />
                   </div>

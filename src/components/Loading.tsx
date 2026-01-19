@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="animate-pulse text-primary text-xl">Đang tải...</div>
+    <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="text-primary animate-pulse text-xl">Đang tải...</div>
     </div>
   );
 }
