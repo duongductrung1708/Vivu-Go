@@ -1,28 +1,50 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 import { X, Check, ArrowRight } from "lucide-react";
 
-const painPoints = [
-  {
-    before: "Mất hàng giờ tìm địa chỉ và ghi chép thủ công",
-    after: "Tọa độ chính xác, lưu tự động trên cloud",
-  },
-  {
-    before: "Tính tiền cơm chia cho cả nhóm rối như tơ vò",
-    after: "Chi phí minh bạch, chia tự động cho từng người",
-  },
-  {
-    before: "Không biết đi đường nào cho nhanh và tiết kiệm",
-    after: "Lộ trình tối ưu, tiết kiệm thời gian di chuyển",
-  },
-  {
-    before: "Quên mất địa điểm hay bị lạc giữa đường",
-    after: "Bản đồ trực quan, dẫn đường từng bước",
-  },
-];
-
 const PainPointsSection = () => {
+  const { t } = useTranslation();
+
+  const painPoints = useMemo(
+    () => [
+      {
+        before: t(
+          "landing.painPoints.point1.before",
+          "Mất hàng giờ tìm địa chỉ và ghi chép thủ công",
+        ),
+        after: t("landing.painPoints.point1.after", "Tọa độ chính xác, lưu tự động trên cloud"),
+      },
+      {
+        before: t(
+          "landing.painPoints.point2.before",
+          "Tính tiền cơm chia cho cả nhóm rối như tơ vò",
+        ),
+        after: t(
+          "landing.painPoints.point2.after",
+          "Chi phí minh bạch, chia tự động cho từng người",
+        ),
+      },
+      {
+        before: t(
+          "landing.painPoints.point3.before",
+          "Không biết đi đường nào cho nhanh và tiết kiệm",
+        ),
+        after: t(
+          "landing.painPoints.point3.after",
+          "Lộ trình tối ưu, tiết kiệm thời gian di chuyển",
+        ),
+      },
+      {
+        before: t("landing.painPoints.point4.before", "Quên mất địa điểm hay bị lạc giữa đường"),
+        after: t("landing.painPoints.point4.after", "Bản đồ trực quan, dẫn đường từng bước"),
+      },
+    ],
+    [t],
+  );
+
   return (
     <section className="bg-muted/30 overflow-hidden py-24">
       <div className="container mx-auto px-4">
@@ -33,10 +55,13 @@ const PainPointsSection = () => {
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Giải quyết mọi <span className="text-gradient">vấn đề</span>
+            {t("landing.painPoints.title")}{" "}
+            <span className="text-gradient">
+              {t("landing.painPoints.titleHighlight", "vấn đề")}
+            </span>
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-            Chúng tôi hiểu những khó khăn bạn gặp phải khi lên kế hoạch du lịch
+            {t("landing.painPoints.description")}
           </p>
         </motion.div>
 
@@ -99,9 +124,14 @@ const PainPointsSection = () => {
         >
           <div className="from-primary to-accent inline-block rounded-3xl bg-linear-to-r p-8 text-white shadow-2xl">
             <p className="mb-2 text-xl font-semibold md:text-2xl">
-              ✨ Mọi thứ gói gọn trong một màn hình
+              ✨ {t("landing.painPoints.summary.title", "Mọi thứ gói gọn trong một màn hình")}
             </p>
-            <p className="text-white/80">Tọa độ chính xác • Chi phí minh bạch • Lộ trình tối ưu</p>
+            <p className="text-white/80">
+              {t(
+                "landing.painPoints.summary.description",
+                "Tọa độ chính xác • Chi phí minh bạch • Lộ trình tối ưu",
+              )}
+            </p>
           </div>
         </motion.div>
       </div>

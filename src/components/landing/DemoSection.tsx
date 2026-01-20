@@ -1,103 +1,113 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const itinerary = [
-  {
-    day: 1,
-    title: "Phố Cổ & Hoài Niệm",
-    color: "from-accent/80 to-accent",
-    places: [
-      { name: "Phở Bưng", time: "7:00 - 8:00", icon: "🍜", type: "food" },
-      {
-        name: "Nhà tù Hỏa Lò",
-        time: "9:00 - 11:00",
-        icon: "🏛️",
-        type: "visit",
-      },
-      {
-        name: "Nhà Thờ Lớn Hà Nội",
-        time: "14:00 - 15:30",
-        icon: "⛪",
-        type: "visit",
-      },
-      {
-        name: "Phố đi bộ Hồ Gươm",
-        time: "18:00 - 21:00",
-        icon: "🚶",
-        type: "walk",
-      },
-    ],
-  },
-  {
-    day: 2,
-    title: "Trái Tim Văn Hiến",
-    color: "from-primary/80 to-primary",
-    places: [
-      {
-        name: "Lăng Chủ tịch Hồ Chí Minh",
-        time: "7:30 - 9:30",
-        icon: "🏛️",
-        type: "visit",
-      },
-      {
-        name: "Văn Miếu - Quốc Tử Giám",
-        time: "10:00 - 12:00",
-        icon: "📚",
-        type: "visit",
-      },
-      {
-        name: "Bún chả Hương Liên",
-        time: "12:30 - 13:30",
-        icon: "🍜",
-        type: "food",
-      },
-      {
-        name: "Hồ Tây - Phủ Tây Hồ",
-        time: "15:00 - 18:00",
-        icon: "🌊",
-        type: "visit",
-      },
-    ],
-  },
-  {
-    day: 3,
-    title: "Kết nối Hiện Đại",
-    color: "from-[hsl(260,60%,50%)]/80 to-[hsl(260,60%,50%)]",
-    places: [
-      {
-        name: "Bảo tàng Lịch sử Quân sự",
-        time: "8:00 - 10:30",
-        icon: "🎖️",
-        type: "visit",
-      },
-      {
-        name: "ĐH FPT Hòa Lạc",
-        time: "12:00 - 14:00",
-        icon: "🎓",
-        type: "visit",
-      },
-      {
-        name: "Làng cổ Đường Lâm",
-        time: "15:00 - 17:00",
-        icon: "🏘️",
-        type: "visit",
-      },
-      {
-        name: "Học viện Quân Y",
-        time: "17:30 - 18:30",
-        icon: "🏥",
-        type: "visit",
-      },
-    ],
-  },
-];
-
 const DemoSection = () => {
+  const { t } = useTranslation();
   const [currentDay, setCurrentDay] = useState(0);
+
+  const itinerary = useMemo(
+    () => [
+      {
+        day: 1,
+        title: t("landing.demo.day1.title", "Phố Cổ & Hoài Niệm"),
+        color: "from-accent/80 to-accent",
+        places: [
+          {
+            name: t("landing.demo.day1.place1", "Phở Bưng"),
+            time: "7:00 - 8:00",
+            icon: "🍜",
+            type: "food",
+          },
+          {
+            name: t("landing.demo.day1.place2", "Nhà tù Hỏa Lò"),
+            time: "9:00 - 11:00",
+            icon: "🏛️",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day1.place3", "Nhà Thờ Lớn Hà Nội"),
+            time: "14:00 - 15:30",
+            icon: "⛪",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day1.place4", "Phố đi bộ Hồ Gươm"),
+            time: "18:00 - 21:00",
+            icon: "🚶",
+            type: "walk",
+          },
+        ],
+      },
+      {
+        day: 2,
+        title: t("landing.demo.day2.title", "Trái Tim Văn Hiến"),
+        color: "from-primary/80 to-primary",
+        places: [
+          {
+            name: t("landing.demo.day2.place1", "Lăng Chủ tịch Hồ Chí Minh"),
+            time: "7:30 - 9:30",
+            icon: "🏛️",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day2.place2", "Văn Miếu - Quốc Tử Giám"),
+            time: "10:00 - 12:00",
+            icon: "📚",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day2.place3", "Bún chả Hương Liên"),
+            time: "12:30 - 13:30",
+            icon: "🍜",
+            type: "food",
+          },
+          {
+            name: t("landing.demo.day2.place4", "Hồ Tây - Phủ Tây Hồ"),
+            time: "15:00 - 18:00",
+            icon: "🌊",
+            type: "visit",
+          },
+        ],
+      },
+      {
+        day: 3,
+        title: t("landing.demo.day3.title", "Kết nối Hiện Đại"),
+        color: "from-[hsl(260,60%,50%)]/80 to-[hsl(260,60%,50%)]",
+        places: [
+          {
+            name: t("landing.demo.day3.place1", "Bảo tàng Lịch sử Quân sự"),
+            time: "8:00 - 10:30",
+            icon: "🎖️",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day3.place2", "ĐH FPT Hòa Lạc"),
+            time: "12:00 - 14:00",
+            icon: "🎓",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day3.place3", "Làng cổ Đường Lâm"),
+            time: "15:00 - 17:00",
+            icon: "🏘️",
+            type: "visit",
+          },
+          {
+            name: t("landing.demo.day3.place4", "Học viện Quân Y"),
+            time: "17:30 - 18:30",
+            icon: "🏥",
+            type: "visit",
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const nextDay = () => setCurrentDay((prev) => (prev + 1) % itinerary.length);
   const prevDay = () => setCurrentDay((prev) => (prev - 1 + itinerary.length) % itinerary.length);
@@ -112,10 +122,13 @@ const DemoSection = () => {
           className="mb-12 text-center"
         >
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Demo: <span className="text-gradient">3 Ngày Oanh Tạc Hà Nội</span>
+            {t("landing.demo.title", "Demo")}:{" "}
+            <span className="text-gradient">
+              {t("landing.demo.subtitle", "3 Ngày Oanh Tạc Hà Nội")}
+            </span>
           </h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-            Khám phá lịch trình mẫu hoàn hảo cho chuyến du lịch Hà Nội của bạn
+            {t("landing.demo.description")}
           </p>
         </motion.div>
 
@@ -133,7 +146,7 @@ const DemoSection = () => {
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
-              Ngày {day.day}
+              {t("itinerary.day")} {day.day}
             </motion.button>
           ))}
         </div>
@@ -168,14 +181,14 @@ const DemoSection = () => {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <span className="text-sm font-medium text-white/80">
-                  Ngày {itinerary[currentDay].day}
+                  {t("itinerary.day")} {itinerary[currentDay].day}
                 </span>
                 <h3 className="text-2xl font-bold md:text-3xl">{itinerary[currentDay].title}</h3>
               </div>
               <div className="text-right">
-                <span className="text-sm text-white/80">Tổng cộng</span>
+                <span className="text-sm text-white/80">{t("itinerary.total")}</span>
                 <p className="text-xl font-semibold">
-                  {itinerary[currentDay].places.length} điểm đến
+                  {itinerary[currentDay].places.length} {t("profile.destinations")}
                 </p>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { vi, enUS } from "date-fns/locale";
 import {
   ArrowLeft,
   Calendar,
@@ -25,6 +25,7 @@ import { useItinerary } from "@/hooks/useItineraries";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import { useTranslation } from "react-i18next";
 
 type DayPhoto = {
   url: string;
@@ -37,6 +38,8 @@ function MemoriesContent() {
   const itineraryId = searchParams?.get("itineraryId") || "";
   const { user, loading: authLoading } = useAuth();
   const { data: itinerary, isLoading: itineraryLoading } = useItinerary(itineraryId);
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === "en" ? enUS : vi;
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -224,7 +227,7 @@ function MemoriesContent() {
   if (authLoading || itineraryLoading) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-primary animate-pulse text-xl">Đang tải kỷ niệm...</div>
+        <div className="text-primary animate-pulse text-xl">{t("memory.loading")}</div>
       </div>
     );
   }
@@ -234,11 +237,13 @@ function MemoriesContent() {
       <div className="bg-background flex min-h-screen items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Thiếu itineraryId</CardTitle>
+            <CardTitle>{t("memory.missingItineraryId")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">Vui lòng truy cập từ menu lịch trình.</p>
-            <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
+            <p className="text-muted-foreground">{t("memory.missingItineraryIdDescription")}</p>
+            <Button onClick={() => router.push("/dashboard")}>
+              {t("common.back")} {t("common.dashboard")}
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -249,8 +254,10 @@ function MemoriesContent() {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="mb-4 text-xl font-semibold">Không tìm thấy lịch trình</h2>
-          <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
+          <h2 className="mb-4 text-xl font-semibold">{t("memory.notFound")}</h2>
+          <Button onClick={() => router.push("/dashboard")}>
+            {t("common.back")} {t("common.dashboard")}
+          </Button>
         </div>
       </div>
     );
@@ -273,7 +280,7 @@ function MemoriesContent() {
                 </Button>
                 <div className="min-w-0">
                   <h1 className="max-w-[220px] truncate text-base leading-snug font-semibold sm:max-w-none sm:text-xl sm:font-bold">
-                    Kỷ niệm chuyến đi
+                    {t("memory.title")}
                   </h1>
                   <p className="text-muted-foreground text-xs sm:truncate sm:text-sm">
                     {itinerary.title}
@@ -287,16 +294,16 @@ function MemoriesContent() {
                   size="sm"
                   onClick={handleExportAlbumPDF}
                   disabled={totalPhotos === 0 || isExporting}
-                  aria-label="Xuất album PDF"
+                  aria-label={t("memory.exportPdf")}
                 >
                   <Download className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">
-                    {isExporting ? "Đang xuất PDF..." : "Xuất album PDF"}
+                    {isExporting ? t("memory.exportingPdf") : t("memory.exportPdf")}
                   </span>
                 </Button>
-                <Button variant="outline" size="sm" aria-label="Chia sẻ">
+                <Button variant="outline" size="sm" aria-label={t("memory.share")}>
                   <Share2 className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Chia sẻ</span>
+                  <span className="hidden sm:inline">{t("memory.share")}</span>
                 </Button>
               </div>
             </div>
@@ -315,17 +322,21 @@ function MemoriesContent() {
                     <Calendar className="h-4 w-4" />
                     <span>
                       {itinerary.start_date && itinerary.end_date
-                        ? `${format(new Date(itinerary.start_date), "dd/MM/yyyy", { locale: vi })} - ${format(new Date(itinerary.end_date), "dd/MM/yyyy", { locale: vi })}`
-                        : "Chưa có ngày"}
+                        ? `${format(new Date(itinerary.start_date), "dd/MM/yyyy", { locale: dateLocale })} - ${format(new Date(itinerary.end_date), "dd/MM/yyyy", { locale: dateLocale })}`
+                        : t("itinerary.noDays")}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    <span>{days.length} ngày</span>
+                    <span>
+                      {days.length} {t("itinerary.days")}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Camera className="h-4 w-4" />
-                    <span>{totalPhotos} ảnh</span>
+                    <span>
+                      {totalPhotos} {t("memory.photos")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -336,12 +347,10 @@ function MemoriesContent() {
         {days.length === 0 ? (
           <Card className="p-12 text-center">
             <Camera className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
-            <h3 className="mb-2 text-xl font-semibold">Chưa có ngày nào trong lịch trình</h3>
-            <p className="text-muted-foreground mb-6">
-              Hãy quay lại lịch trình và thêm ngày trước khi tải ảnh.
-            </p>
+            <h3 className="mb-2 text-xl font-semibold">{t("memory.noDays")}</h3>
+            <p className="text-muted-foreground mb-6">{t("memory.noDaysDescription")}</p>
             <Button onClick={() => router.push(`/itinerary/${itineraryId}`)}>
-              Quay lại lịch trình
+              {t("memory.backToItinerary")}
             </Button>
           </Card>
         ) : (
@@ -371,12 +380,12 @@ function MemoriesContent() {
                         {isUploading && uploadTargetDay === day.id ? (
                           <>
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="hidden sm:inline">Đang tải lên...</span>
+                            <span className="hidden sm:inline">{t("memory.uploading")}</span>
                           </>
                         ) : (
                           <>
                             <UploadCloud className="h-4 w-4" />
-                            <span className="hidden sm:inline">Tải ảnh</span>
+                            <span className="hidden sm:inline">{t("memory.upload")}</span>
                           </>
                         )}
                       </div>
@@ -463,11 +472,12 @@ function MemoriesContent() {
 }
 
 export default function MemoriesPage() {
+  const { t } = useTranslation();
   return (
     <Suspense
       fallback={
         <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="text-primary animate-pulse text-xl">Đang tải kỷ niệm...</div>
+          <div className="text-primary animate-pulse text-xl">{t("memory.loading")}</div>
         </div>
       }
     >

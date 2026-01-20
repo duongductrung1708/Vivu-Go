@@ -1,39 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Calendar, Map, Wallet, Database } from "lucide-react";
-
-const features = [
-  {
-    icon: Calendar,
-    title: "Lịch trình linh hoạt",
-    description: "Không giới hạn số ngày hay số người. Tự do thêm, bớt và kéo thả địa điểm.",
-    color: "bg-secondary",
-    iconColor: "text-secondary-foreground",
-  },
-  {
-    icon: Map,
-    title: "Bản đồ thông minh",
-    description: "Tự động vẽ lộ trình ngắn nhất giữa các điểm tham quan.",
-    color: "bg-primary/10",
-    iconColor: "text-primary",
-  },
-  {
-    icon: Wallet,
-    title: "Quản lý ngân sách",
-    description: "Tự động tính toán chi phí trung bình trên mỗi thành viên.",
-    color: "bg-accent/10",
-    iconColor: "text-accent",
-  },
-  {
-    icon: Database,
-    title: "Dữ liệu chính xác",
-    description:
-      "Tích hợp tìm kiếm địa điểm từ các nguồn mở uy tín, bao quát từ phố cổ đến ngoại ô.",
-    color: "bg-[hsl(var(--lavender))]",
-    iconColor: "text-[hsl(var(--lavender-foreground))]",
-  },
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -51,6 +20,39 @@ const item = {
 };
 
 const FeaturesSection = () => {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: Calendar,
+      title: t("landing.features.flexibleSchedule.title"),
+      description: t("landing.features.flexibleSchedule.description"),
+      color: "bg-secondary",
+      iconColor: "text-secondary-foreground",
+    },
+    {
+      icon: Map,
+      title: t("landing.features.smartMap.title"),
+      description: t("landing.features.smartMap.description"),
+      color: "bg-primary/10",
+      iconColor: "text-primary",
+    },
+    {
+      icon: Wallet,
+      title: t("landing.features.budgetManagement.title"),
+      description: t("landing.features.budgetManagement.description"),
+      color: "bg-accent/10",
+      iconColor: "text-accent",
+    },
+    {
+      icon: Database,
+      title: t("landing.features.accurateData.title"),
+      description: t("landing.features.accurateData.description"),
+      color: "bg-[hsl(var(--lavender))]",
+      iconColor: "text-[hsl(var(--lavender-foreground))]",
+    },
+  ];
+
   return (
     <section className="bg-muted/30 py-24">
       <div className="container mx-auto px-4">
@@ -60,11 +62,9 @@ const FeaturesSection = () => {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Tại sao chọn <span className="text-gradient">chúng tôi?</span>
-          </h2>
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">{t("landing.features.title")}</h2>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-            Tất cả những gì bạn cần để có một chuyến đi hoàn hảo, gói gọn trong một ứng dụng.
+            {t("landing.features.description")}
           </p>
         </motion.div>
 

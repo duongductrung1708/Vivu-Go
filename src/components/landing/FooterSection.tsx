@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { MapPin, Mail, Phone, Facebook, Instagram, Youtube, Github } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const FooterSection = () => {
+  const { t } = useTranslation();
   return (
     <footer className="bg-background text-foreground">
       {/* CTA Section */}
@@ -27,23 +29,22 @@ const FooterSection = () => {
               ✈️
             </motion.div>
             <h2 className="mb-4 text-3xl font-bold md:text-5xl">
-              Chuyến đi tiếp theo của bạn
+              {t("landing.footer.ctaTitle")}
               <br />
-              <span className="text-white/90">bắt đầu từ đây</span>
+              <span className="text-white/90">{t("landing.footer.ctaSubtitle")}</span>
             </h2>
             <p className="mx-auto mb-8 max-w-2xl text-xl text-white/80">
-              Đừng để việc lên kế hoạch làm bạn mệt mỏi. Hãy để chúng tôi giúp bạn tận hưởng từng
-              khoảnh khắc.
+              {t("landing.footer.ctaDescription")}
             </p>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link href="/dashboard">
                 <Button
                   size="lg"
                   className="text-primary rounded-full bg-white px-10 py-7 text-lg font-bold shadow-2xl hover:bg-white/90"
-                  aria-label="Bắt đầu lên lịch ngay"
+                  aria-label={t("landing.footer.ctaButton")}
                 >
                   <MapPin className="h-5 w-5 sm:mr-2" />
-                  <span className="hidden sm:inline">Bắt đầu lên lịch ngay</span>
+                  <span className="hidden sm:inline">{t("landing.footer.ctaButton")}</span>
                 </Button>
               </Link>
             </motion.div>
@@ -83,9 +84,15 @@ const FooterSection = () => {
 
             {/* Quick Links */}
             <div>
-              <h4 className="mb-4 text-lg font-semibold">Liên kết nhanh</h4>
+              <h4 className="mb-4 text-lg font-semibold">{t("landing.footer.quickLinks")}</h4>
               <ul className="space-y-3">
-                {["Trang chủ", "Tính năng", "Demo", "Hướng dẫn", "Liên hệ"].map((link) => (
+                {[
+                  t("common.home"),
+                  t("landing.features.title"),
+                  t("landing.hero.ctaSecondary"),
+                  t("landing.footer.guide", "Hướng dẫn"),
+                  t("landing.footer.contact"),
+                ].map((link) => (
                   <li key={link}>
                     <a href="#" className="text-foreground/70 hover:text-primary transition-colors">
                       {link}
@@ -97,7 +104,7 @@ const FooterSection = () => {
 
             {/* Contact */}
             <div>
-              <h4 className="mb-4 text-lg font-semibold">Liên hệ</h4>
+              <h4 className="mb-4 text-lg font-semibold">{t("landing.footer.contact")}</h4>
               <ul className="space-y-3">
                 <li className="text-foreground/70 flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -117,13 +124,13 @@ const FooterSection = () => {
 
           {/* Bottom bar */}
           <div className="border-foreground/10 mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
-            <p className="text-foreground/50 text-sm">© 2024 Vivu Go. Tất cả quyền được bảo lưu.</p>
+            <p className="text-foreground/50 text-sm">{t("landing.footer.copyright")}</p>
             <div className="text-foreground/50 flex gap-6 text-sm">
               <a href="#" className="hover:text-primary transition-colors">
-                Điều khoản sử dụng
+                {t("landing.footer.terms")}
               </a>
               <a href="#" className="hover:text-primary transition-colors">
-                Chính sách bảo mật
+                {t("landing.footer.privacy")}
               </a>
             </div>
           </div>

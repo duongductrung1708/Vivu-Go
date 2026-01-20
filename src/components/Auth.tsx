@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { MapPin, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-const emailSchema = z.string().email("Email không hợp lệ");
-const passwordSchema = z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự");
-const nameSchema = z.string().min(2, "Tên phải có ít nhất 2 ký tự");
-
 function AuthContent() {
+  const { t, i18n } = useTranslation();
+
+  const emailSchema = z.string().email(t("auth.invalidEmail", "Email không hợp lệ"));
+  const passwordSchema = z
+    .string()
+    .min(6, t("auth.passwordMinLength", "Mật khẩu phải có ít nhất 6 ký tự"));
+  const nameSchema = z.string().min(2, t("auth.nameMinLength", "Tên phải có ít nhất 2 ký tự"));
+
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +49,7 @@ function AuthContent() {
   if (authLoading) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-primary animate-pulse text-xl">Đang tải...</div>
+        <div className="text-primary animate-pulse text-xl">{t("common.loading")}</div>
       </div>
     );
   }
@@ -86,16 +91,16 @@ function AuthContent() {
         if (error) {
           toast({
             variant: "destructive",
-            title: "Đăng nhập thất bại",
+            title: t("auth.loginFailed", "Đăng nhập thất bại"),
             description:
               error.message === "Invalid login credentials"
-                ? "Email hoặc mật khẩu không đúng"
+                ? t("auth.invalidCredentials", "Email hoặc mật khẩu không đúng")
                 : error.message,
           });
         } else {
           toast({
-            title: "Đăng nhập thành công!",
-            description: "Chào mừng bạn trở lại!",
+            title: t("auth.loginSuccess", "Đăng nhập thành công!"),
+            description: t("auth.welcomeBack", "Chào mừng bạn trở lại!"),
           });
           // Redirect to dashboard after successful login
           router.push("/dashboard");
@@ -105,15 +110,15 @@ function AuthContent() {
         if (error) {
           toast({
             variant: "destructive",
-            title: "Đăng ký thất bại",
+            title: t("auth.signupFailed", "Đăng ký thất bại"),
             description: error.message.includes("already registered")
-              ? "Email này đã được đăng ký"
+              ? t("auth.emailAlreadyRegistered", "Email này đã được đăng ký")
               : error.message,
           });
         } else {
           toast({
-            title: "Đăng ký thành công!",
-            description: "Bạn có thể đăng nhập ngay bây giờ.",
+            title: t("auth.signupSuccess", "Đăng ký thành công!"),
+            description: t("auth.canLoginNow", "Bạn có thể đăng nhập ngay bây giờ."),
           });
           setIsLogin(true);
         }
@@ -242,7 +247,7 @@ export default function Auth() {
     <Suspense
       fallback={
         <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="text-primary animate-pulse text-xl">Đang tải...</div>
+          <div className="text-primary animate-pulse text-xl">Loading...</div>
         </div>
       }
     >

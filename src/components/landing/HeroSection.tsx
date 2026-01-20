@@ -3,17 +3,28 @@
 import { motion } from "framer-motion";
 import { MapPin, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 
 const HeroSection = () => {
+  const { t } = useTranslation();
   return (
     <section className="from-background via-secondary/30 to-background relative min-h-screen overflow-hidden bg-linear-to-br">
       <Navbar />
       {/* Decorative blobs - fixed dimensions to prevent CLS */}
-      <div className="bg-primary/20 absolute top-20 left-10 h-72 w-72 rounded-full blur-3xl" style={{ contain: "layout" }} />
-      <div className="bg-accent/20 absolute right-10 bottom-20 h-96 w-96 rounded-full blur-3xl" style={{ contain: "layout" }} />
-      <div className="bg-secondary/40 absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" style={{ contain: "layout" }} />
+      <div
+        className="bg-primary/20 absolute top-20 left-10 h-72 w-72 rounded-full blur-3xl"
+        style={{ contain: "layout" }}
+      />
+      <div
+        className="bg-accent/20 absolute right-10 bottom-20 h-96 w-96 rounded-full blur-3xl"
+        style={{ contain: "layout" }}
+      />
+      <div
+        className="bg-secondary/40 absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        style={{ contain: "layout" }}
+      />
 
       <div className="relative z-10 container mx-auto mt-4 px-4 py-20">
         <div className="flex min-h-[80vh] flex-col items-center gap-12 lg:flex-row">
@@ -31,7 +42,7 @@ const HeroSection = () => {
               className="bg-primary/10 text-primary mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2"
             >
               <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">Vivu Go</span>
+              <span className="text-sm font-medium">{t("landing.hero.tagline")}</span>
             </motion.div>
 
             <motion.h1
@@ -40,8 +51,8 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              Lên kế hoạch mọi chuyến đi,
-              <span className="text-gradient"> chỉ trong vài cú click.</span>
+              {t("landing.hero.title")}
+              <span className="text-gradient"> {t("landing.hero.titleHighlight")}</span>
             </motion.h1>
 
             <motion.p
@@ -50,8 +61,7 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              Công cụ thông minh giúp bạn tự thiết lập lịch trình, tối ưu đường đi và quản lý chi
-              phí linh hoạt cho mọi nhóm bạn.
+              {t("landing.hero.description")}
             </motion.p>
 
             <motion.div
@@ -64,10 +74,10 @@ const HeroSection = () => {
                 <Button
                   size="lg"
                   className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-accent/30 hover:shadow-accent/40 rounded-full px-8 py-6 text-lg font-semibold shadow-lg transition-all hover:shadow-xl"
-                  aria-label="Bắt đầu lên lịch ngay"
+                  aria-label={t("landing.hero.ctaPrimary")}
                 >
                   <MapPin className="h-5 w-5 sm:mr-2" />
-                  <span className="sm:inline">Bắt đầu lên lịch ngay</span>
+                  <span className="sm:inline">{t("landing.hero.ctaPrimary")}</span>
                 </Button>
               </Link>
               <Link href="/demo">
@@ -76,7 +86,7 @@ const HeroSection = () => {
                   variant="outline"
                   className="rounded-full border-2 px-8 py-6 text-lg font-semibold"
                 >
-                  Xem demo
+                  {t("landing.hero.ctaSecondary")}
                 </Button>
               </Link>
             </motion.div>

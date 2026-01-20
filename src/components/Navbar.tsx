@@ -3,8 +3,10 @@
 import { MapPin, LogIn, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +23,7 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
   const router = useRouter();
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
 
   // Extract itineraryId from pathname if not provided
   const currentItineraryId = itineraryId || pathname?.match(/\/itinerary\/([^/]+)/)?.[1];
@@ -49,6 +52,7 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle variant="inline" />
+          <LanguageSwitcher />
           {user ? (
             <div className="flex items-center gap-3">
               {/* Active Users Avatars */}
@@ -77,7 +81,9 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="text-sm">{activeUser.name}</p>
-                              <p className="text-muted-foreground text-xs">Đang chỉnh sửa</p>
+                              <p className="text-muted-foreground text-xs">
+                                {t("common.editing", "Đang chỉnh sửa")}
+                              </p>
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -122,10 +128,10 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
               variant="outline"
               onClick={() => router.push("/auth")}
               className="rounded-full"
-              aria-label="Đăng nhập"
+              aria-label={t("navbar.login")}
             >
               <LogIn className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Đăng nhập</span>
+              <span className="hidden sm:inline">{t("navbar.login")}</span>
             </Button>
           )}
         </div>

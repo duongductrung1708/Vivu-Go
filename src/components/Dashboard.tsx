@@ -46,7 +46,8 @@ import {
 import Loading from "@/components/Loading";
 import Navbar from "@/components/Navbar";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { vi, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X } from "lucide-react";
 
@@ -54,6 +55,10 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation();
+
+  // Get date-fns locale based on i18n language
+  const dateLocale = i18n.language === "en" ? enUS : vi;
   const { data: itineraries, isLoading } = useItineraries();
   const deleteItinerary = useDeleteItinerary();
   const { data: pendingInvitations, isLoading: isLoadingInvitations } = usePendingInvitations();
@@ -82,16 +87,16 @@ export default function Dashboard() {
     try {
       await deleteItinerary.mutateAsync(itineraryToDelete);
       toast({
-        title: "Đã xóa",
-        description: "Lịch trình đã được xóa thành công.",
+        title: t("dashboard.deleteSuccess"),
+        description: t("dashboard.deleteSuccessDescription"),
       });
       setDeleteDialogOpen(false);
       setItineraryToDelete(null);
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể xóa lịch trình. Vui lòng thử lại.",
+        title: t("dashboard.deleteError"),
+        description: t("dashboard.deleteErrorDescription"),
       });
     }
   };
@@ -104,14 +109,14 @@ export default function Dashboard() {
         itineraryId,
       });
       toast({
-        title: "Đã chấp nhận",
-        description: "Bạn đã chấp nhận lời mời cộng tác.",
+        title: t("dashboard.acceptSuccess"),
+        description: t("dashboard.acceptSuccessDescription"),
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể chấp nhận lời mời. Vui lòng thử lại.",
+        title: t("dashboard.acceptError"),
+        description: t("dashboard.acceptErrorDescription"),
       });
     }
   };
@@ -124,14 +129,14 @@ export default function Dashboard() {
         itineraryId,
       });
       toast({
-        title: "Đã từ chối",
-        description: "Bạn đã từ chối lời mời cộng tác.",
+        title: t("dashboard.declineSuccess"),
+        description: t("dashboard.declineSuccessDescription"),
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể từ chối lời mời. Vui lòng thử lại.",
+        title: t("dashboard.declineError"),
+        description: t("dashboard.declineErrorDescription"),
       });
     }
   };
@@ -148,26 +153,24 @@ export default function Dashboard() {
       <main className="mx-auto max-w-7xl px-4 py-8 pt-24 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold">Lịch trình của bạn</h2>
-            <p className="text-muted-foreground mt-1">
-              Quản lý và lên kế hoạch cho những chuyến đi tuyệt vời
-            </p>
+            <h2 className="text-3xl font-bold">{t("dashboard.title")}</h2>
+            <p className="text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
           </div>
 
           <Button
             onClick={handleCreateNew}
             className="from-primary to-accent bg-linear-to-r hover:opacity-90"
-            aria-label="Tạo lịch trình mới"
+            aria-label={t("dashboard.createNew")}
           >
             <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Tạo lịch trình mới</span>
+            <span className="hidden sm:inline">{t("dashboard.createNew")}</span>
           </Button>
         </div>
 
         {/* Pending Invitations */}
         {pendingInvitations && pendingInvitations.length > 0 && (
           <div className="bg-muted/50 border-border mb-8 rounded-lg border p-4">
-            <h3 className="mb-3 text-lg font-semibold">Lời mời cộng tác đang chờ</h3>
+            <h3 className="mb-3 text-lg font-semibold">{t("dashboard.pendingInvitations")}</h3>
             <div className="space-y-3">
               {pendingInvitations.map((invitation) => {
                 const invitationWithInviter = invitation as typeof invitation & {
@@ -204,7 +207,7 @@ export default function Dashboard() {
                         <div className="flex-1 space-y-3">
                           <div>
                             <h4 className="mb-1 text-lg font-semibold">
-                              {itinerary?.title || "Lịch trình"}
+                              {itinerary?.title || t("dashboard.itinerary")}
                             </h4>
                             {itinerary?.description && (
                               <p className="text-muted-foreground line-clamp-2 text-sm">
@@ -215,12 +218,12 @@ export default function Dashboard() {
                             {invitationWithInviter.inviter_name ||
                             invitationWithInviter.inviter_email ? (
                               <div className="text-muted-foreground mt-2 text-sm">
-                                <span className="font-medium">Được mời bởi: </span>
+                                <span className="font-medium">{t("dashboard.invitedBy")}: </span>
                                 <span>
                                   {invitationWithInviter.inviter_name &&
                                   invitationWithInviter.inviter_name !== "Unknown"
                                     ? invitationWithInviter.inviter_name
-                                    : invitationWithInviter.inviter_email || "Người dùng"}
+                                    : invitationWithInviter.inviter_email || t("dashboard.user")}
                                 </span>
                                 {invitationWithInviter.inviter_email &&
                                   invitationWithInviter.inviter_name &&
@@ -238,20 +241,24 @@ export default function Dashboard() {
                             {daysCount > 0 && (
                               <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-md px-2.5 py-1">
                                 <Clock className="h-3.5 w-3.5" />
-                                <span className="text-xs font-medium">{daysCount} ngày</span>
+                                <span className="text-xs font-medium">
+                                  {daysCount} {t("itinerary.days")}
+                                </span>
                               </div>
                             )}
                             {placesCount > 0 && (
                               <div className="bg-accent/10 text-accent flex items-center gap-1.5 rounded-md px-2.5 py-1">
                                 <MapPin className="h-3.5 w-3.5" />
-                                <span className="text-xs font-medium">{placesCount} điểm</span>
+                                <span className="text-xs font-medium">
+                                  {placesCount} {t("itinerary.places")}
+                                </span>
                               </div>
                             )}
                             {(itinerary?.people_count ?? 0) > 0 && (
                               <div className="bg-secondary text-secondary-foreground flex items-center gap-1.5 rounded-md px-2.5 py-1">
                                 <Users className="h-3.5 w-3.5" />
                                 <span className="text-xs font-medium">
-                                  {itinerary?.people_count} người
+                                  {itinerary?.people_count} {t("itinerary.people")}
                                 </span>
                               </div>
                             )}
@@ -272,7 +279,7 @@ export default function Dashboard() {
                                 <Calendar className="h-3.5 w-3.5" />
                                 <span>
                                   {format(startDate, "dd/MM/yyyy", {
-                                    locale: vi,
+                                    locale: dateLocale,
                                   })}
                                 </span>
                               </div>
@@ -281,16 +288,18 @@ export default function Dashboard() {
                               <div className="flex items-center gap-1.5">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span>
-                                  Mời ngày{" "}
+                                  {t("dashboard.invitedOn")}{" "}
                                   {format(inviteDate, "dd/MM/yyyy", {
-                                    locale: vi,
+                                    locale: dateLocale,
                                   })}
                                 </span>
                               </div>
                             )}
                             <div className="flex items-center gap-1.5">
                               <span className="bg-primary/10 text-primary rounded px-2 py-0.5 text-xs font-medium">
-                                {invitation.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
+                                {invitation.permission === "edit"
+                                  ? t("dashboard.edit")
+                                  : t("common.view")}
                               </span>
                             </div>
                           </div>
@@ -305,10 +314,10 @@ export default function Dashboard() {
                             }
                             disabled={updateCollaborationStatus.isPending}
                             className="w-full"
-                            aria-label="Chấp nhận lời mời"
+                            aria-label={t("dashboard.acceptLabel")}
                           >
                             <Check className="h-4 w-4 sm:mr-1" />
-                            <span className="hidden sm:inline">Chấp nhận</span>
+                            <span className="hidden sm:inline">{t("dashboard.accept")}</span>
                           </Button>
                           <Button
                             size="sm"
@@ -318,10 +327,10 @@ export default function Dashboard() {
                             }
                             disabled={updateCollaborationStatus.isPending}
                             className="w-full"
-                            aria-label="Từ chối lời mời"
+                            aria-label={t("dashboard.declineLabel")}
                           >
                             <X className="h-4 w-4 sm:mr-1" />
-                            <span className="hidden sm:inline">Từ chối</span>
+                            <span className="hidden sm:inline">{t("dashboard.decline")}</span>
                           </Button>
                         </div>
                       </div>
@@ -343,13 +352,11 @@ export default function Dashboard() {
             <div className="bg-secondary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full">
               <MapPin className="text-primary h-12 w-12" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Chưa có lịch trình nào</h3>
-            <p className="text-muted-foreground mb-6">
-              Bắt đầu tạo lịch trình đầu tiên của bạn ngay!
-            </p>
+            <h3 className="mb-2 text-xl font-semibold">{t("dashboard.noItineraries")}</h3>
+            <p className="text-muted-foreground mb-6">{t("dashboard.noItinerariesDescription")}</p>
             <Button onClick={handleCreateNew}>
               <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Tạo lịch trình mới</span>
+              <span className="hidden sm:inline">{t("dashboard.createNew")}</span>
             </Button>
           </motion.div>
         ) : (
@@ -384,18 +391,20 @@ export default function Dashboard() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.deleteConfirm")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa lịch trình này? Hành động này không thể hoàn tác.
+              {t("dashboard.deleteConfirmDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItineraryToDelete(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setItineraryToDelete(null)}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -422,6 +431,8 @@ function ItineraryCard({
   onDelete: (id: string) => void;
   router: ReturnType<typeof useRouter>;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === "en" ? enUS : vi;
   const { data: isOwner = false } = useIsItineraryOwner(itinerary.id);
 
   return (
@@ -477,7 +488,7 @@ function ItineraryCard({
                   }}
                 >
                   <Edit className="mr-2 h-4 w-4" />
-                  Chỉnh sửa
+                  {t("dashboard.edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -486,14 +497,14 @@ function ItineraryCard({
                   }}
                 >
                   <Camera className="mr-2 h-4 w-4" />
-                  Kỷ niệm (ảnh từng ngày)
+                  {t("dashboard.memories")}
                 </DropdownMenuItem>
                 {isOwner && (
                   <>
                     <ItineraryShareDialog itineraryId={itinerary.id}>
                       <DropdownMenuItem>
                         <Share2 className="mr-2 h-4 w-4" />
-                        Chia sẻ
+                        {t("dashboard.share")}
                       </DropdownMenuItem>
                     </ItineraryShareDialog>
                     <DropdownMenuItem
@@ -504,7 +515,7 @@ function ItineraryCard({
                       }}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Xóa
+                      {t("dashboard.delete")}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -519,19 +530,25 @@ function ItineraryCard({
             {daysCount > 0 && (
               <div className="bg-primary/10 text-primary flex items-center gap-1.5 rounded-lg px-3 py-1.5">
                 <Clock className="h-4 w-4" />
-                <span className="text-sm font-medium">{daysCount} ngày</span>
+                <span className="text-sm font-medium">
+                  {daysCount} {t("itinerary.days")}
+                </span>
               </div>
             )}
             {placesCount > 0 && (
               <div className="bg-accent/10 text-accent flex items-center gap-1.5 rounded-lg px-3 py-1.5">
                 <MapPin className="h-4 w-4" />
-                <span className="text-sm font-medium">{placesCount} điểm</span>
+                <span className="text-sm font-medium">
+                  {placesCount} {t("itinerary.places")}
+                </span>
               </div>
             )}
             {itinerary.people_count > 0 && (
               <div className="bg-secondary text-secondary-foreground flex items-center gap-1.5 rounded-lg px-3 py-1.5">
                 <Users className="h-4 w-4" />
-                <span className="text-sm font-medium">{itinerary.people_count} người</span>
+                <span className="text-sm font-medium">
+                  {itinerary.people_count} {t("itinerary.people")}
+                </span>
               </div>
             )}
           </div>
@@ -542,10 +559,10 @@ function ItineraryCard({
               <div className="text-muted-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 shrink-0" />
                 <div>
-                  <div className="text-muted-foreground/70 text-xs">Ngày bắt đầu</div>
+                  <div className="text-muted-foreground/70 text-xs">{t("common.startDate")}</div>
                   <div className="text-foreground font-medium">
                     {format(startDate, "dd/MM/yyyy", {
-                      locale: vi,
+                      locale: dateLocale,
                     })}
                   </div>
                 </div>
@@ -555,9 +572,12 @@ function ItineraryCard({
               <div className="text-muted-foreground flex items-center gap-2">
                 <DollarSign className="h-4 w-4 shrink-0" />
                 <div>
-                  <div className="text-muted-foreground/70 text-xs">Ngân sách</div>
+                  <div className="text-muted-foreground/70 text-xs">{t("common.budget")}</div>
                   <div className="text-foreground font-semibold">
-                    {itinerary.total_budget.toLocaleString("vi-VN")} đ
+                    {itinerary.total_budget.toLocaleString(
+                      i18n.language === "en" ? "en-US" : "vi-VN",
+                    )}{" "}
+                    {i18n.language === "en" ? "VND" : "đ"}
                   </div>
                 </div>
               </div>

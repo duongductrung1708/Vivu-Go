@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   Settings,
   Save,
@@ -43,6 +44,7 @@ export default function ItineraryDetailPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation();
   const { data: itinerary, isLoading } = useItinerary(itineraryId);
   const { data: canEdit = false, isLoading: isLoadingPermission } =
     useCanEditItinerary(itineraryId);
@@ -101,7 +103,11 @@ export default function ItineraryDetailPage() {
       // Silently fail for auto-save (user can manually save if needed)
       // Only log if it's not a version conflict (which is expected during collaboration)
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes("Lịch trình đã được cập nhật")) {
+      // Check for version conflict message (in both languages)
+      if (
+        errorMessage.includes("Lịch trình đã được cập nhật") ||
+        errorMessage.includes("Itinerary has been updated")
+      ) {
         // Version conflict - this is expected during collaboration, realtime will sync
         // Don't log as error, just skip this auto-save
         return;
@@ -196,8 +202,8 @@ export default function ItineraryDetailPage() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Cần đăng nhập",
-        description: "Vui lòng đăng nhập để lưu thay đổi.",
+        title: t("trip.loginRequired"),
+        description: t("itinerary.loginRequired"),
       });
       router.push("/auth");
       return;
@@ -206,8 +212,8 @@ export default function ItineraryDetailPage() {
     if (trip.days.length === 0) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Vui lòng thêm ít nhất một ngày vào lịch trình.",
+        title: t("errors.generic"),
+        description: t("itinerary.daysRequired"),
       });
       return;
     }
@@ -215,8 +221,8 @@ export default function ItineraryDetailPage() {
     if (!itineraryId) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không tìm thấy ID lịch trình.",
+        title: t("errors.generic"),
+        description: t("itinerary.idNotFound"),
       });
       return;
     }
@@ -236,15 +242,17 @@ export default function ItineraryDetailPage() {
       });
 
       toast({
-        title: "Đã lưu",
-        description: "Cập nhật lịch trình thành công.",
+        title: t("itinerary.saved", "Đã lưu"),
+        description: t("itinerary.savedDescription", "Cập nhật lịch trình thành công."),
       });
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.";
+        error instanceof Error
+          ? error.message
+          : t("itinerary.saveError", "Không thể lưu lịch trình. Vui lòng thử lại.");
       toast({
         variant: "destructive",
-        title: "Lỗi",
+        title: t("errors.generic"),
         description: errorMessage,
       });
     }
@@ -258,8 +266,10 @@ export default function ItineraryDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="space-y-3 text-center">
-          <p className="text-lg font-semibold">Không tìm thấy lịch trình</p>
-          <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
+          <p className="text-lg font-semibold">{t("errors.notFound")}</p>
+          <Button onClick={() => router.push("/dashboard")}>
+            {t("common.back")} {t("common.dashboard")}
+          </Button>
         </div>
       </div>
     );
@@ -269,14 +279,17 @@ export default function ItineraryDetailPage() {
     try {
       await exportItineraryToPDF(itinerary);
       toast({
-        title: "Đã xuất PDF",
-        description: "File PDF lịch trình đã được tải xuống.",
+        title: t("itinerary.pdfExported", "Đã xuất PDF"),
+        description: t(
+          "itinerary.pdfExportedDescription",
+          "File PDF lịch trình đã được tải xuống.",
+        ),
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Vui lòng thử lại sau.";
+      const errorMessage = error instanceof Error ? error.message : t("errors.generic");
       toast({
         variant: "destructive",
-        title: "Lỗi khi xuất PDF",
+        title: t("itinerary.pdfExportError", "Lỗi khi xuất PDF"),
         description: errorMessage,
       });
     }
@@ -286,14 +299,17 @@ export default function ItineraryDetailPage() {
     try {
       exportItineraryToGoogleCalendar(itinerary);
       toast({
-        title: "Đã xuất Google Calendar",
-        description: "File lịch trình đã được tải xuống. Mở file để thêm vào Google Calendar.",
+        title: t("itinerary.calendarExported", "Đã xuất Google Calendar"),
+        description: t(
+          "itinerary.calendarExportedDescription",
+          "File lịch trình đã được tải xuống. Mở file để thêm vào Google Calendar.",
+        ),
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Vui lòng thử lại sau.";
+      const errorMessage = error instanceof Error ? error.message : t("errors.generic");
       toast({
         variant: "destructive",
-        title: "Lỗi khi xuất Google Calendar",
+        title: t("itinerary.calendarExportError", "Lỗi khi xuất Google Calendar"),
         description: errorMessage,
       });
     }
@@ -314,7 +330,7 @@ export default function ItineraryDetailPage() {
                 ? "top-20 left-4"
                 : "top-20 left-[calc(420px+0.5rem)]"
           }`}
-          aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
+          aria-label={isSidebarCollapsed ? t("itinerary.openSidebar") : t("itinerary.closeSidebar")}
         >
           {isSidebarCollapsed ? (
             <PanelLeftOpen className="text-foreground h-5 w-5" />
@@ -327,14 +343,14 @@ export default function ItineraryDetailPage() {
         {isMobile ? (
           <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
             <SheetContent side="left" className="w-[85vw] overflow-hidden p-0 sm:w-[420px]">
-              <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
+              <SheetTitle className="sr-only">{t("itinerary.sidebarTitle")}</SheetTitle>
               <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
                 {showInfoCard && (
                   <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
                     <div className="mb-3 flex items-center justify-between">
                       <div>
                         <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                          Lịch trình đã lưu
+                          {t("itinerary.savedStatus")}
                         </p>
                         <h2 className="text-card-foreground text-base font-semibold">
                           {trip.name}
@@ -343,20 +359,24 @@ export default function ItineraryDetailPage() {
                       <div className="flex items-center gap-2">
                         <div className="text-right">
                           <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
-                            Tổng cộng
+                            {t("itinerary.total")}
                           </p>
                           <p className="text-card-foreground text-sm font-semibold">
-                            {totalCost.toLocaleString("vi-VN")} đ
+                            {totalCost.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                            {i18n.language === "en" ? "VND" : "đ"}
                           </p>
                           <p className="text-muted-foreground text-[11px]">
-                            {costPerPerson.toLocaleString("vi-VN")} đ / người
+                            {costPerPerson.toLocaleString(
+                              i18n.language === "en" ? "en-US" : "vi-VN",
+                            )}{" "}
+                            {t("itinerary.perPerson")}
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setShowConfig(!showConfig)}
                           className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                          title="Chỉnh sửa cấu hình chuyến đi"
+                          title={t("itinerary.editConfig", "Chỉnh sửa cấu hình chuyến đi")}
                         >
                           <Settings className="h-4 w-4" />
                         </button>
@@ -364,7 +384,7 @@ export default function ItineraryDetailPage() {
                           type="button"
                           onClick={() => setShowInfoCard(false)}
                           className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                          title="Ẩn thông tin lịch trình"
+                          title={t("itinerary.hideInfo", "Ẩn thông tin lịch trình")}
                         >
                           <ChevronUp className="h-4 w-4" />
                         </button>
@@ -377,18 +397,22 @@ export default function ItineraryDetailPage() {
                           className="flex-1"
                           onClick={() => router.push("/dashboard")}
                         >
-                          Trở lại
+                          {t("itinerary.back")}
                         </Button>
                         <Button
                           onClick={handleSave}
                           className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
                           disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
-                          title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
-                          aria-label={updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                          title={!canEdit ? t("itinerary.readOnly") : ""}
+                          aria-label={
+                            updateItinerary.isPending ? t("itinerary.saving") : t("itinerary.save")
+                          }
                         >
                           <Save className="h-4 w-4 sm:mr-2" />
                           <span className="hidden sm:inline">
-                            {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                            {updateItinerary.isPending
+                              ? t("itinerary.saving")
+                              : t("itinerary.save")}
                           </span>
                         </Button>
                       </div>
@@ -397,19 +421,19 @@ export default function ItineraryDetailPage() {
                           variant="outline"
                           className="flex-1"
                           onClick={handleExportPdf}
-                          aria-label="Xuất PDF"
+                          aria-label={t("itinerary.exportPdf")}
                         >
                           <FileDown className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Xuất PDF</span>
+                          <span className="hidden sm:inline">{t("itinerary.exportPdf")}</span>
                         </Button>
                         <Button
                           variant="outline"
                           className="flex-1"
                           onClick={handleExportGoogleCalendar}
-                          aria-label="Xuất Google Calendar"
+                          aria-label={t("itinerary.exportCalendar")}
                         >
                           <Calendar className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Google Calendar</span>
+                          <span className="hidden sm:inline">{t("itinerary.exportCalendar")}</span>
                         </Button>
                       </div>
                     </div>
@@ -420,7 +444,7 @@ export default function ItineraryDetailPage() {
                     type="button"
                     onClick={() => setShowInfoCard(true)}
                     className="bg-card border-border hover:bg-muted shrink-0 rounded-3xl border p-2 text-center shadow-sm transition-colors"
-                    title="Hiện thông tin lịch trình"
+                    title={t("itinerary.showInfo", "Hiện thông tin lịch trình")}
                   >
                     <ChevronDown className="text-muted-foreground mx-auto h-4 w-4" />
                   </button>
@@ -439,8 +463,8 @@ export default function ItineraryDetailPage() {
                     className="flex flex-1 flex-col overflow-hidden"
                   >
                     <TabsList className="mb-2 grid w-full grid-cols-2">
-                      <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
-                      <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
+                      <TabsTrigger value="timeline">{t("itinerary.timeline")}</TabsTrigger>
+                      <TabsTrigger value="packing">{t("itinerary.packing")}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="timeline" className="mt-0 flex-1 overflow-hidden">
                       <div className="h-full overflow-y-auto">
@@ -469,27 +493,29 @@ export default function ItineraryDetailPage() {
                 <div className="mb-3 flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                      Lịch trình đã lưu
+                      {t("itinerary.savedStatus")}
                     </p>
                     <h2 className="text-card-foreground text-base font-semibold">{trip.name}</h2>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-right">
                       <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
-                        Tổng cộng
+                        {t("itinerary.total")}
                       </p>
                       <p className="text-card-foreground text-sm font-semibold">
-                        {totalCost.toLocaleString("vi-VN")} đ
+                        {totalCost.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                        {i18n.language === "en" ? "VND" : "đ"}
                       </p>
                       <p className="text-muted-foreground text-[11px]">
-                        {costPerPerson.toLocaleString("vi-VN")} đ / người
+                        {costPerPerson.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                        {t("itinerary.perPerson")}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowConfig(!showConfig)}
                       className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                      title="Chỉnh sửa cấu hình chuyến đi"
+                      title={t("itinerary.editConfig", "Chỉnh sửa cấu hình chuyến đi")}
                     >
                       <Settings className="h-4 w-4" />
                     </button>
@@ -497,7 +523,7 @@ export default function ItineraryDetailPage() {
                       type="button"
                       onClick={() => setShowInfoCard(false)}
                       className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                      title="Ẩn thông tin lịch trình"
+                      title={t("itinerary.hideInfo", "Ẩn thông tin lịch trình")}
                     >
                       <ChevronUp className="h-4 w-4" />
                     </button>
@@ -510,18 +536,20 @@ export default function ItineraryDetailPage() {
                       className="flex-1"
                       onClick={() => router.push("/dashboard")}
                     >
-                      Trở lại
+                      {t("itinerary.back")}
                     </Button>
                     <Button
                       onClick={handleSave}
                       className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
                       disabled={!canEdit || trip.days.length === 0 || updateItinerary.isPending}
-                      title={!canEdit ? "Bạn chỉ có quyền xem, không thể chỉnh sửa" : ""}
-                      aria-label={updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                      title={!canEdit ? t("itinerary.readOnly") : ""}
+                      aria-label={
+                        updateItinerary.isPending ? t("itinerary.saving") : t("itinerary.save")
+                      }
                     >
                       <Save className="h-4 w-4 sm:mr-2" />
                       <span className="hidden sm:inline">
-                        {updateItinerary.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                        {updateItinerary.isPending ? t("itinerary.saving") : t("itinerary.save")}
                       </span>
                     </Button>
                   </div>
@@ -530,19 +558,19 @@ export default function ItineraryDetailPage() {
                       variant="outline"
                       className="flex-1"
                       onClick={handleExportPdf}
-                      aria-label="Xuất PDF"
+                      aria-label={t("itinerary.exportPdf")}
                     >
                       <FileDown className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Xuất PDF</span>
+                      <span className="hidden sm:inline">{t("itinerary.exportPdf")}</span>
                     </Button>
                     <Button
                       variant="outline"
                       className="flex-1"
                       onClick={handleExportGoogleCalendar}
-                      aria-label="Xuất Google Calendar"
+                      aria-label={t("itinerary.exportCalendar")}
                     >
                       <Calendar className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Google Calendar</span>
+                      <span className="hidden sm:inline">{t("itinerary.exportCalendar")}</span>
                     </Button>
                   </div>
                 </div>
@@ -552,7 +580,7 @@ export default function ItineraryDetailPage() {
                 type="button"
                 onClick={() => setShowInfoCard(true)}
                 className="bg-card border-border hover:bg-muted w-full shrink-0 rounded-3xl border p-2 text-center shadow-sm transition-colors"
-                title="Hiện thông tin lịch trình"
+                title={t("itinerary.showInfo", "Hiện thông tin lịch trình")}
               >
                 <ChevronDown className="text-muted-foreground mx-auto h-4 w-4" />
               </button>
@@ -571,8 +599,8 @@ export default function ItineraryDetailPage() {
                 className="flex flex-1 flex-col overflow-hidden"
               >
                 <TabsList className="mb-2 grid w-full grid-cols-2">
-                  <TabsTrigger value="timeline">Lịch trình</TabsTrigger>
-                  <TabsTrigger value="packing">Danh sách chuẩn bị</TabsTrigger>
+                  <TabsTrigger value="timeline">{t("itinerary.timeline")}</TabsTrigger>
+                  <TabsTrigger value="packing">{t("itinerary.packing")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="timeline" className="mt-0 flex-1 overflow-hidden">
                   <div className="h-full overflow-y-auto">

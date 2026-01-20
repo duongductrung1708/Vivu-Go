@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useShareByToken } from "@/hooks/useItinerarySharing";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Itinerary } from "@/hooks/useItineraries";
@@ -20,7 +21,7 @@ import {
   Globe,
 } from "lucide-react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { vi, enUS } from "date-fns/locale";
 import Navbar from "@/components/Navbar";
 // import { useToast } from "@/hooks/use-toast";
 
@@ -32,6 +33,8 @@ export default function SharedItineraryPage() {
   const router = useRouter();
   const token = params?.token;
   const { user, loading: authLoading } = useAuth();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === "en" ? enUS : vi;
   const { data: shareData, isLoading, error } = useShareByToken(token || "");
   // const updateStatus = useUpdateCollaborationStatus();
 
@@ -56,8 +59,10 @@ export default function SharedItineraryPage() {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="mb-4 text-xl font-semibold">Không tìm thấy lịch trình</h2>
-          <Button onClick={() => router.push("/dashboard")}>Quay lại Dashboard</Button>
+          <h2 className="mb-4 text-xl font-semibold">{t("share.notFound")}</h2>
+          <Button onClick={() => router.push("/dashboard")}>
+            {t("common.back")} {t("common.dashboard")}
+          </Button>
         </div>
       </div>
     );
@@ -70,13 +75,11 @@ export default function SharedItineraryPage() {
       <div className="bg-background flex min-h-screen items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Không tìm thấy lịch trình</CardTitle>
-            <CardDescription>
-              Lịch trình được chia sẻ không còn tồn tại hoặc đã bị xóa.
-            </CardDescription>
+            <CardTitle>{t("share.notFound")}</CardTitle>
+            <CardDescription>{t("share.notFoundDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/")}>Về trang chủ</Button>
+            <Button onClick={() => router.push("/")}>{t("share.backToHome")}</Button>
           </CardContent>
         </Card>
       </div>
@@ -89,9 +92,13 @@ export default function SharedItineraryPage() {
       <Navbar variant="fixed" />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.push("/")} aria-label="Về trang chủ">
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/")}
+            aria-label={t("share.backToHome")}
+          >
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Về trang chủ</span>
+            <span className="hidden sm:inline">{t("share.backToHome")}</span>
           </Button>
         </div>
 
@@ -111,12 +118,12 @@ export default function SharedItineraryPage() {
                     {canEdit ? (
                       <>
                         <Edit className="h-4 w-4" />
-                        <span>Có thể chỉnh sửa</span>
+                        <span>{t("share.canEdit")}</span>
                       </>
                     ) : (
                       <>
                         <Lock className="h-4 w-4" />
-                        <span>Chỉ đọc</span>
+                        <span>{t("share.readOnly")}</span>
                       </>
                     )}
                   </div>
@@ -144,19 +151,23 @@ export default function SharedItineraryPage() {
                     {daysCount > 0 && (
                       <div className="bg-primary/10 text-primary flex items-center gap-2 rounded-lg px-4 py-2">
                         <Clock className="h-5 w-5" />
-                        <span className="font-semibold">{daysCount} ngày</span>
+                        <span className="font-semibold">
+                          {daysCount} {t("itinerary.days")}
+                        </span>
                       </div>
                     )}
                     {placesCount > 0 && (
                       <div className="bg-accent/10 text-accent flex items-center gap-2 rounded-lg px-4 py-2">
                         <MapPin className="h-5 w-5" />
-                        <span className="font-semibold">{placesCount} điểm đến</span>
+                        <span className="font-semibold">
+                          {placesCount} {t("profile.destinations")}
+                        </span>
                       </div>
                     )}
                     {itinerary.is_public && (
                       <div className="bg-secondary flex items-center gap-2 rounded-lg px-4 py-2">
                         <Globe className="h-5 w-5" />
-                        <span className="font-semibold">Công khai</span>
+                        <span className="font-semibold">{t("common.public")}</span>
                       </div>
                     )}
                   </div>
@@ -173,18 +184,18 @@ export default function SharedItineraryPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
-                      Ngày bắt đầu
+                      {t("common.startDate")}
                     </div>
                     <div className="text-lg font-semibold">
                       {format(new Date(itinerary.start_date), "dd/MM/yyyy", {
-                        locale: vi,
+                        locale: dateLocale,
                       })}
                     </div>
                     {itinerary.end_date && (
                       <div className="text-muted-foreground mt-1 text-sm">
                         →{" "}
                         {format(new Date(itinerary.end_date), "dd/MM/yyyy", {
-                          locale: vi,
+                          locale: dateLocale,
                         })}
                       </div>
                     )}
@@ -198,9 +209,11 @@ export default function SharedItineraryPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
-                      Số người
+                      {t("share.peopleCount", "Số người")}
                     </div>
-                    <div className="text-lg font-semibold">{itinerary.people_count} người</div>
+                    <div className="text-lg font-semibold">
+                      {itinerary.people_count} {t("itinerary.people")}
+                    </div>
                   </div>
                 </div>
               )}
@@ -211,10 +224,13 @@ export default function SharedItineraryPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-muted-foreground mb-1 text-xs tracking-wide uppercase">
-                      Ngân sách
+                      {t("common.budget")}
                     </div>
                     <div className="text-lg font-semibold">
-                      {itinerary.total_budget.toLocaleString("vi-VN")} đ
+                      {itinerary.total_budget.toLocaleString(
+                        i18n.language === "en" ? "en-US" : "vi-VN",
+                      )}{" "}
+                      {i18n.language === "en" ? "VND" : "đ"}
                     </div>
                   </div>
                 </div>
@@ -227,7 +243,9 @@ export default function SharedItineraryPage() {
                 className="from-primary to-accent h-12 w-full bg-linear-to-r text-base font-semibold transition-opacity hover:opacity-90"
                 size="lg"
               >
-                {canEdit ? "Mở để chỉnh sửa" : "Xem chi tiết"}
+                {canEdit
+                  ? t("share.openToEdit", "Mở để chỉnh sửa")
+                  : t("share.viewDetails", "Xem chi tiết")}
               </Button>
             </div>
           </CardContent>

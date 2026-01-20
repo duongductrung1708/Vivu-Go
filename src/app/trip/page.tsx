@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { MapContainer } from "@/components/MapContainer";
 import { Timeline } from "@/components/Timeline";
 import { TripConfig } from "@/components/TripConfig";
@@ -35,6 +36,7 @@ export default function TripPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation();
   const [showConfig, setShowConfig] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
@@ -67,8 +69,8 @@ export default function TripPage() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Cần đăng nhập",
-        description: "Vui lòng đăng nhập để lưu lịch trình.",
+        title: t("trip.loginRequired"),
+        description: t("trip.loginRequiredDescription"),
       });
       router.push("/auth");
       return;
@@ -77,8 +79,8 @@ export default function TripPage() {
     if (!saveTitle.trim()) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Vui lòng nhập tên lịch trình.",
+        title: t("trip.nameRequired"),
+        description: t("trip.nameRequiredDescription"),
       });
       return;
     }
@@ -86,8 +88,8 @@ export default function TripPage() {
     if (trip.days.length === 0) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Vui lòng thêm ít nhất một ngày vào lịch trình.",
+        title: t("trip.daysRequired"),
+        description: t("trip.daysRequiredDescription"),
       });
       return;
     }
@@ -104,8 +106,8 @@ export default function TripPage() {
       });
 
       toast({
-        title: "Thành công!",
-        description: "Đã lưu lịch trình vào database.",
+        title: t("trip.saveSuccess"),
+        description: t("trip.saveSuccessDescription"),
       });
 
       setShowSaveDialog(false);
@@ -117,9 +119,8 @@ export default function TripPage() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description:
-          error instanceof Error ? error.message : "Không thể lưu lịch trình. Vui lòng thử lại.",
+        title: t("trip.saveError"),
+        description: error instanceof Error ? error.message : t("trip.saveErrorDescription"),
       });
     }
   };
@@ -143,7 +144,7 @@ export default function TripPage() {
                 ? "top-20 left-4"
                 : "top-20 left-[calc(420px+0.5rem)]"
           }`}
-          aria-label={isSidebarCollapsed ? "Mở sidebar" : "Thu sidebar"}
+          aria-label={isSidebarCollapsed ? t("itinerary.openSidebar") : t("itinerary.closeSidebar")}
         >
           {isSidebarCollapsed ? (
             <PanelLeftOpen className="text-foreground h-5 w-5" />
@@ -156,35 +157,37 @@ export default function TripPage() {
         {isMobile ? (
           <Sheet open={!isSidebarCollapsed} onOpenChange={(open) => setIsSidebarCollapsed(!open)}>
             <SheetContent side="left" className="w-[85vw] overflow-hidden p-0 sm:w-[420px]">
-              <SheetTitle className="sr-only">Sidebar điều hướng</SheetTitle>
+              <SheetTitle className="sr-only">{t("itinerary.sidebarTitle")}</SheetTitle>
               <div className="flex h-full flex-col gap-2 overflow-hidden p-2">
                 <div className="bg-card border-border shrink-0 rounded-3xl border p-3 shadow-sm">
                   <div className="mb-3 flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                        Tổng quan ngân sách
+                        {t("trip.budgetOverview", "Tổng quan ngân sách")}
                       </p>
                       <h2 className="text-card-foreground text-base font-semibold">
-                        {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
+                        {trip.days.length} {t("itinerary.days")}
                       </h2>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
                         <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
-                          Tổng cộng
+                          {t("itinerary.total")}
                         </p>
                         <p className="text-card-foreground text-sm font-semibold">
-                          {totalCost.toLocaleString("vi-VN")} đ
+                          {totalCost.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                          {i18n.language === "en" ? "VND" : "đ"}
                         </p>
                         <p className="text-muted-foreground text-[11px]">
-                          {costPerPerson.toLocaleString("vi-VN")} đ / người
+                          {costPerPerson.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                          {t("itinerary.perPerson")}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowConfig(!showConfig)}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                        title="Chỉnh sửa cấu hình chuyến đi"
+                        title={t("itinerary.editConfig")}
                       >
                         <Settings className="h-4 w-4" />
                       </button>
@@ -194,10 +197,10 @@ export default function TripPage() {
                     onClick={() => setShowSaveDialog(true)}
                     className="from-primary to-accent w-full bg-linear-to-r hover:opacity-90"
                     disabled={trip.days.length === 0}
-                    aria-label="Lưu lịch trình"
+                    aria-label={t("trip.save")}
                   >
                     <Save className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Lưu lịch trình</span>
+                    <span className="hidden sm:inline">{t("trip.save")}</span>
                   </Button>
                 </div>
 
@@ -224,29 +227,31 @@ export default function TripPage() {
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                    Tổng quan ngân sách
+                    {t("trip.budgetOverview", "Tổng quan ngân sách")}
                   </p>
                   <h2 className="text-card-foreground text-base font-semibold">
-                    {trip.days.length} {trip.days.length === 1 ? "ngày" : "ngày"}
+                    {trip.days.length} {t("itinerary.days")}
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-right">
                     <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
-                      Tổng cộng
+                      {t("itinerary.total")}
                     </p>
                     <p className="text-card-foreground text-sm font-semibold">
-                      {totalCost.toLocaleString("vi-VN")} đ
+                      {totalCost.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                      {i18n.language === "en" ? "VND" : "đ"}
                     </p>
                     <p className="text-muted-foreground text-[11px]">
-                      {costPerPerson.toLocaleString("vi-VN")} đ / người
+                      {costPerPerson.toLocaleString(i18n.language === "en" ? "en-US" : "vi-VN")}{" "}
+                      {t("itinerary.perPerson")}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowConfig(!showConfig)}
                     className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-full p-1.5 transition-colors"
-                    title="Chỉnh sửa cấu hình chuyến đi"
+                    title={t("itinerary.editConfig")}
                   >
                     <Settings className="h-4 w-4" />
                   </button>
@@ -256,10 +261,10 @@ export default function TripPage() {
                 onClick={() => setShowSaveDialog(true)}
                 className="from-primary to-accent w-full bg-linear-to-r hover:opacity-90"
                 disabled={trip.days.length === 0}
-                aria-label="Lưu lịch trình"
+                aria-label={t("trip.save")}
               >
                 <Save className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Lưu lịch trình</span>
+                <span className="hidden sm:inline">{t("trip.save")}</span>
               </Button>
             </div>
 
@@ -284,40 +289,40 @@ export default function TripPage() {
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lưu lịch trình</DialogTitle>
-            <DialogDescription>
-              Lưu lịch trình của bạn vào database để quản lý và chia sẻ
-            </DialogDescription>
+            <DialogTitle>{t("trip.saveDialog.title")}</DialogTitle>
+            <DialogDescription>{t("trip.saveDialog.description")}</DialogDescription>
           </DialogHeader>
           <div className="mt-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="save-title">Tên lịch trình *</Label>
+              <Label htmlFor="save-title">{t("trip.saveDialog.name")} *</Label>
               <Input
                 id="save-title"
-                placeholder="VD: 3 ngày khám phá Hà Nội"
+                placeholder={t("trip.saveDialog.namePlaceholder")}
                 value={saveTitle}
                 onChange={(e) => setSaveTitle(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="save-description">Mô tả</Label>
+              <Label htmlFor="save-description">{t("trip.saveDialog.description")}</Label>
               <Textarea
                 id="save-description"
-                placeholder="Mô tả ngắn về chuyến đi..."
+                placeholder={t("trip.saveDialog.descriptionPlaceholder")}
                 value={saveDescription}
                 onChange={(e) => setSaveDescription(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowSaveDialog(false)} className="flex-1">
-                Hủy
+                {t("trip.saveDialog.cancel")}
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={!saveTitle.trim() || createItinerary.isPending}
                 className="from-primary to-accent flex-1 bg-linear-to-r hover:opacity-90"
               >
-                {createItinerary.isPending ? "Đang lưu..." : "Lưu"}
+                {createItinerary.isPending
+                  ? t("trip.saveDialog.saving")
+                  : t("trip.saveDialog.save")}
               </Button>
             </div>
           </div>
