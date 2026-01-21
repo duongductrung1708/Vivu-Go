@@ -9,12 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 function AuthContent() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const emailSchema = z.string().email(t("auth.invalidEmail", "Email không hợp lệ"));
   const passwordSchema = z
@@ -27,13 +34,16 @@ function AuthContent() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     name?: string;
   }>({});
 
-  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,7 +59,9 @@ function AuthContent() {
   if (authLoading) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-primary animate-pulse text-xl">{t("common.loading")}</div>
+        <div className="text-primary animate-pulse text-xl">
+          {t("common.loading", "Đang tải...")}
+        </div>
       </div>
     );
   }
@@ -76,6 +88,43 @@ function AuthContent() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSendResetEmail = async () => {
+    const emailResult = emailSchema.safeParse(resetEmail);
+    if (!emailResult.success) {
+      toast({
+        variant: "destructive",
+        title: t("errors.generic", "Đã xảy ra lỗi"),
+        description: emailResult.error.issues[0]?.message,
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await resetPassword(resetEmail);
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: t("auth.resetEmailFailed", "Không thể gửi email"),
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: t("auth.resetEmailSent", "Đã gửi email"),
+        description: t(
+          "auth.resetEmailSentDescription",
+          "Vui lòng kiểm tra hộp thư để đặt lại mật khẩu.",
+        ),
+      });
+      setForgotPasswordOpen(false);
+      setResetEmail("");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,24 +194,31 @@ function AuthContent() {
               <MapPin className="h-8 w-8 text-white" />
             </motion.div>
             <CardTitle className="text-2xl font-bold">
-              {isLogin ? "Chào mừng trở lại!" : "Tạo tài khoản mới"}
+              {isLogin
+                ? t("auth.welcomeBackTitle", "Chào mừng trở lại!")
+                : t("auth.createAccountTitle", "Tạo tài khoản mới")}
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? "Đăng nhập để tiếp tục lên kế hoạch chuyến đi"
-                : "Bắt đầu hành trình khám phá của bạn"}
+                ? t(
+                  "auth.loginDescription",
+                  "Đăng nhập để tiếp tục lên kế hoạch chuyến đi",
+                )
+                : t("auth.signupDescription", "Bắt đầu hành trình khám phá của bạn")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Họ và tên</Label>
+                  <Label htmlFor="fullName">
+                    {t("auth.fullName", "Họ và tên")}
+                  </Label>
                   <div className="relative">
                     <User className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                     <Input
                       id="fullName"
-                      placeholder="Nguyễn Văn A"
+                      placeholder={t("auth.fullNamePlaceholder", "Nguyễn Văn A")}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="pl-10"
@@ -173,13 +229,15 @@ function AuthContent() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  {t("auth.email", "Email")}
+                </Label>
                 <div className="relative">
                   <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="email@example.com"
+                    placeholder={t("auth.emailPlaceholder", "email@example.com")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
@@ -189,19 +247,35 @@ function AuthContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Mật khẩu</Label>
+                <Label htmlFor="password">
+                  {t("auth.password", "Mật khẩu")}
+                </Label>
                 <div className="relative">
                   <Lock className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t("auth.passwordPlaceholder", "••••••••")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                   />
                 </div>
                 {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
+                {isLogin && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPasswordOpen(true);
+                        setResetEmail(email);
+                      }}
+                      className="text-primary text-sm font-medium hover:underline"
+                    >
+                      {t("auth.forgotPassword", "Quên mật khẩu?")}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <Button
@@ -210,10 +284,14 @@ function AuthContent() {
                 disabled={loading}
               >
                 {loading ? (
-                  <span className="animate-pulse">Đang xử lý...</span>
+                  <span className="animate-pulse">
+                    {t("auth.processing", "Đang xử lý...")}
+                  </span>
                 ) : (
                   <>
-                    {isLogin ? "Đăng nhập" : "Đăng ký"}
+                    {isLogin
+                      ? t("auth.login", "Đăng nhập")
+                      : t("auth.signup", "Đăng ký")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -222,7 +300,9 @@ function AuthContent() {
 
             <div className="mt-6 text-center">
               <p className="text-muted-foreground text-sm">
-                {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}
+                {isLogin
+                  ? t("auth.noAccount", "Chưa có tài khoản?")
+                  : t("auth.hasAccount", "Đã có tài khoản?")}
                 <button
                   type="button"
                   onClick={() => {
@@ -231,13 +311,54 @@ function AuthContent() {
                   }}
                   className="text-primary ml-1 font-medium hover:underline"
                 >
-                  {isLogin ? "Đăng ký ngay" : "Đăng nhập"}
+                  {isLogin
+                    ? t("auth.signupNow", "Đăng ký ngay")
+                    : t("auth.login", "Đăng nhập")}
                 </button>
               </p>
             </div>
           </CardContent>
         </Card>
       </motion.div>
+
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("auth.forgotPassword", "Quên mật khẩu?")}</DialogTitle>
+            <DialogDescription>
+              {t(
+                "auth.forgotPasswordDescription",
+                "Nhập email của bạn để nhận link đặt lại mật khẩu.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="resetEmail">{t("auth.email", "Email")}</Label>
+            <Input
+              id="resetEmail"
+              type="email"
+              placeholder={t("auth.emailPlaceholder", "email@example.com")}
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleSendResetEmail}
+            disabled={resetLoading}
+            className="from-primary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90"
+          >
+            {resetLoading ? (
+              <span className="animate-pulse">{t("common.loading", "Đang tải...")}</span>
+            ) : (
+              t("auth.sendResetLink", "Gửi link đặt lại mật khẩu")
+            )}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -247,7 +368,7 @@ export default function Auth() {
     <Suspense
       fallback={
         <div className="bg-background flex min-h-screen items-center justify-center">
-          <div className="text-primary animate-pulse text-xl">Loading...</div>
+          <div className="text-primary animate-pulse text-xl">Đang tải...</div>
         </div>
       }
     >

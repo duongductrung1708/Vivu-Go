@@ -278,6 +278,11 @@
     "email": "Email",
     "password": "Mật khẩu",
     "forgotPassword": "Quên mật khẩu?",
+    "forgotPasswordDescription": "Nhập email của bạn để nhận link đặt lại mật khẩu.",
+    "sendResetLink": "Gửi link đặt lại mật khẩu",
+    "resetEmailSent": "Đã gửi email",
+    "resetEmailSentDescription": "Vui lòng kiểm tra hộp thư để đặt lại mật khẩu.",
+    "resetEmailFailed": "Không thể gửi email",
     "noAccount": "Chưa có tài khoản?",
     "hasAccount": "Đã có tài khoản?",
     "signInWithGoogle": "Đăng nhập với Google",
@@ -305,6 +310,20 @@
     "passwordPlaceholder": "••••••••",
     "processing": "Đang xử lý...",
     "signupNow": "Đăng ký ngay"
+  },
+  "resetPassword": {
+    "title": "Đặt lại mật khẩu",
+    "description": "Nhập mật khẩu mới để tiếp tục.",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu mới",
+    "cta": "Cập nhật mật khẩu",
+    "missingToken": "Link không hợp lệ hoặc đã hết hạn.",
+    "passwordRequired": "Vui lòng nhập mật khẩu mới.",
+    "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự.",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+    "success": "Đã cập nhật mật khẩu",
+    "successDescription": "Bạn có thể đăng nhập với mật khẩu mới.",
+    "error": "Không thể đặt lại mật khẩu"
   },
   "trip": {
     "title": "Tạo lịch trình mới",

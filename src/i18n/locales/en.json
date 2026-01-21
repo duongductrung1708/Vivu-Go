@@ -279,6 +279,11 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot password?",
+    "forgotPasswordDescription": "Enter your email to receive a password reset link.",
+    "sendResetLink": "Send password reset link",
+    "resetEmailSent": "Email sent",
+    "resetEmailSentDescription": "Please check your inbox to reset your password.",
+    "resetEmailFailed": "Could not send email",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signInWithGoogle": "Sign in with Google",
@@ -306,6 +311,20 @@
     "passwordPlaceholder": "••••••••",
     "processing": "Processing...",
     "signupNow": "Sign up now"
+  },
+  "resetPassword": {
+    "title": "Reset your password",
+    "description": "Enter a new password to continue.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "cta": "Update password",
+    "missingToken": "The link is invalid or has expired.",
+    "passwordRequired": "Please enter a new password.",
+    "passwordMinLength": "Password must be at least 6 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "success": "Password updated",
+    "successDescription": "You can now sign in with your new password.",
+    "error": "Could not reset password"
   },
   "trip": {
     "title": "Create New Itinerary",
