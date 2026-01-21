@@ -200,10 +200,7 @@ function AuthContent() {
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? t(
-                  "auth.loginDescription",
-                  "Đăng nhập để tiếp tục lên kế hoạch chuyến đi",
-                )
+                ? t("auth.loginDescription", "Đăng nhập để tiếp tục lên kế hoạch chuyến đi")
                 : t("auth.signupDescription", "Bắt đầu hành trình khám phá của bạn")}
             </CardDescription>
           </CardHeader>
@@ -211,9 +208,7 @@ function AuthContent() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">
-                    {t("auth.fullName", "Họ và tên")}
-                  </Label>
+                  <Label htmlFor="fullName">{t("auth.fullName", "Họ và tên")}</Label>
                   <div className="relative">
                     <User className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                     <Input
@@ -229,9 +224,7 @@ function AuthContent() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  {t("auth.email", "Email")}
-                </Label>
+                <Label htmlFor="email">{t("auth.email", "Email")}</Label>
                 <div className="relative">
                   <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
@@ -247,9 +240,7 @@ function AuthContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">
-                  {t("auth.password", "Mật khẩu")}
-                </Label>
+                <Label htmlFor="password">{t("auth.password", "Mật khẩu")}</Label>
                 <div className="relative">
                   <Lock className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
@@ -284,14 +275,10 @@ function AuthContent() {
                 disabled={loading}
               >
                 {loading ? (
-                  <span className="animate-pulse">
-                    {t("auth.processing", "Đang xử lý...")}
-                  </span>
+                  <span className="animate-pulse">{t("auth.processing", "Đang xử lý...")}</span>
                 ) : (
                   <>
-                    {isLogin
-                      ? t("auth.login", "Đăng nhập")
-                      : t("auth.signup", "Đăng ký")}
+                    {isLogin ? t("auth.login", "Đăng nhập") : t("auth.signup", "Đăng ký")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -311,9 +298,7 @@ function AuthContent() {
                   }}
                   className="text-primary ml-1 font-medium hover:underline"
                 >
-                  {isLogin
-                    ? t("auth.signupNow", "Đăng ký ngay")
-                    : t("auth.login", "Đăng nhập")}
+                  {isLogin ? t("auth.signupNow", "Đăng ký ngay") : t("auth.login", "Đăng nhập")}
                 </button>
               </p>
             </div>
