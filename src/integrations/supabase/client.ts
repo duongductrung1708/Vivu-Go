@@ -9,11 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// IMPORTANT:
-// - detectSessionInUrl MUST be false to avoid auto-login on email links
-//   (reset password / confirm signup) before the user completes the intended flow.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    detectSessionInUrl: false,
-  },
-});
+// Default client:
+// - detectSessionInUrl enabled (for OAuth callbacks)
+// - email flows (reset/confirm) use custom URLs that don't expose access_token directly
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

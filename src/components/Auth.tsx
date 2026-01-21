@@ -34,6 +34,7 @@ function AuthContent() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
@@ -43,7 +44,8 @@ function AuthContent() {
     name?: string;
   }>({});
 
-  const { signIn, signUp, resetPassword, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, resetPassword, signInWithGoogle, user, loading: authLoading } =
+    useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -177,6 +179,23 @@ function AuthContent() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: t("auth.loginFailed", "Đăng nhập thất bại"),
+          description: error.message,
+        });
+      }
+      // signInWithOAuth will redirect the browser on success.
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="from-secondary via-background to-lavender flex min-h-screen items-center justify-center bg-linear-to-br p-4">
       <motion.div
@@ -272,7 +291,7 @@ function AuthContent() {
               <Button
                 type="submit"
                 className="from-primary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90"
-                disabled={loading}
+                disabled={loading || googleLoading}
               >
                 {loading ? (
                   <span className="animate-pulse">{t("auth.processing", "Đang xử lý...")}</span>
@@ -284,6 +303,28 @@ function AuthContent() {
                 )}
               </Button>
             </form>
+
+            <div className="my-4 flex items-center gap-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-muted-foreground text-xs uppercase tracking-wide">
+                {t("auth.or", "Hoặc")}
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={googleLoading || loading}
+              onClick={handleGoogleSignIn}
+            >
+              {googleLoading ? (
+                <span className="animate-pulse">{t("auth.processing", "Đang xử lý...")}</span>
+              ) : (
+                t("auth.signInWithGoogle", "Đăng nhập với Google")
+              )}
+            </Button>
 
             <div className="mt-6 text-center">
               <p className="text-muted-foreground text-sm">

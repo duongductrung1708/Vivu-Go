@@ -310,7 +310,8 @@
     "emailPlaceholder": "email@example.com",
     "passwordPlaceholder": "••••••••",
     "processing": "Processing...",
-    "signupNow": "Sign up now"
+    "signupNow": "Sign up now",
+    "or": "Or"
   },
   "resetPassword": {
     "title": "Reset your password",

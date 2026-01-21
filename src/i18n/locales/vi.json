@@ -309,7 +309,8 @@
     "emailPlaceholder": "email@example.com",
     "passwordPlaceholder": "••••••••",
     "processing": "Đang xử lý...",
-    "signupNow": "Đăng ký ngay"
+    "signupNow": "Đăng ký ngay",
+    "or": "Hoặc"
   },
   "resetPassword": {
     "title": "Đặt lại mật khẩu",
