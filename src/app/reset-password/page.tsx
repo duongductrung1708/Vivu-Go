@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,18 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
+  const supabase = useMemo(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        detectSessionInUrl: false,
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }, []);
+
   const [isLinkReady, setIsLinkReady] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -26,14 +38,47 @@ function ResetPasswordContent() {
   const [updating, setUpdating] = useState(false);
 
   const tokens = useMemo(() => {
-    const error = searchParams?.get("error");
-    const error_description = searchParams?.get("error_description");
-    const code = searchParams?.get("code");
-    const token_hash = searchParams?.get("token_hash");
-    const type = searchParams?.get("type");
-    const access_token = searchParams?.get("access_token");
-    const refresh_token = searchParams?.get("refresh_token");
-    return { error, error_description, code, token_hash, type, access_token, refresh_token };
+    const fromQuery = {
+      error: searchParams?.get("error"),
+      error_description: searchParams?.get("error_description"),
+      code: searchParams?.get("code"),
+      token_hash: searchParams?.get("token_hash"),
+      type: searchParams?.get("type"),
+      access_token: searchParams?.get("access_token"),
+      refresh_token: searchParams?.get("refresh_token"),
+    };
+
+    // Supabase often puts recovery tokens in URL hash: #access_token=...&refresh_token=...
+    const fromHash: Record<string, string> = {};
+    if (typeof window !== "undefined" && window.location.hash) {
+      const raw = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+      for (const part of raw.split("&")) {
+        const [k, v] = part.split("=");
+        if (k && typeof v === "string") {
+          fromHash[decodeURIComponent(k)] = decodeURIComponent(v);
+        }
+      }
+    }
+
+    const merged = { ...fromHash, ...fromQuery };
+    const normalized = {
+      error: merged.error ?? null,
+      error_description: merged.error_description ?? null,
+      code: merged.code ?? null,
+      token_hash: merged.token_hash ?? null,
+      type: merged.type ?? null,
+      access_token: merged.access_token ?? null,
+      refresh_token: merged.refresh_token ?? null,
+    };
+
+    // Remove tokens from the address bar to prevent accidental reuse/leaks.
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, document.title, "/reset-password");
+    }
+
+    return normalized;
   }, [searchParams]);
 
   useEffect(() => {
@@ -42,8 +87,8 @@ function ResetPasswordContent() {
     if (tokens.error || tokens.error_description) {
       setSessionError(
         tokens.error_description ||
-          tokens.error ||
-          t("resetPassword.missingToken", "Link không hợp lệ hoặc đã hết hạn."),
+        tokens.error ||
+        t("resetPassword.missingToken", "Link không hợp lệ hoặc đã hết hạn."),
       );
       return;
     }
@@ -60,6 +105,7 @@ function ResetPasswordContent() {
 
     setIsLinkReady(true);
   }, [
+    supabase,
     t,
     tokens.access_token,
     tokens.refresh_token,
