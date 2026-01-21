@@ -33,6 +33,8 @@ function ResetPasswordContent() {
 
   const [isLinkReady, setIsLinkReady] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resending, setResending] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -195,6 +197,43 @@ function ResetPasswordContent() {
     }
   };
 
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resendEmail) {
+      toast({
+        variant: "destructive",
+        title: t("errors.generic", "Đã xảy ra lỗi"),
+        description: t("auth.invalidEmail", "Email không hợp lệ"),
+      });
+      return;
+    }
+    setResending(true);
+    try {
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(resendEmail, {
+        redirectTo: redirectUrl,
+      });
+      if (error) throw error;
+      toast({
+        title: t("auth.resetEmailSent", "Đã gửi email"),
+        description: t(
+          "auth.resetEmailSentDescription",
+          "Vui lòng kiểm tra hộp thư để đặt lại mật khẩu.",
+        ),
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : t("errors.generic", "Đã xảy ra lỗi");
+      toast({
+        variant: "destructive",
+        title: t("auth.resetEmailFailed", "Không thể gửi email"),
+        description: message,
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="from-secondary via-background to-lavender flex min-h-screen items-center justify-center bg-linear-to-br p-4">
       <Card className="bg-card/80 w-full max-w-md border-0 shadow-2xl backdrop-blur-sm">
@@ -212,7 +251,35 @@ function ResetPasswordContent() {
 
         <CardContent>
           {sessionError ? (
-            <p className="text-destructive text-center text-sm">{sessionError}</p>
+            <div className="space-y-4">
+              <p className="text-destructive text-center text-sm">{sessionError}</p>
+              <form onSubmit={handleResend} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="resendEmail">{t("auth.email", "Email")}</Label>
+                  <Input
+                    id="resendEmail"
+                    type="email"
+                    placeholder={t("auth.emailPlaceholder", "email@example.com")}
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="from-primary to-accent w-full bg-linear-to-r transition-opacity hover:opacity-90"
+                  disabled={resending}
+                >
+                  {resending ? (
+                    <span className="animate-pulse">
+                      {t("auth.processing", "Đang xử lý...")}
+                    </span>
+                  ) : (
+                    t("auth.sendResetLink", "Gửi link đặt lại mật khẩu")
+                  )}
+                </Button>
+              </form>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
