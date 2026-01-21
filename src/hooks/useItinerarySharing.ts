@@ -113,14 +113,31 @@ export function useShareByToken(token: string) {
     queryFn: async () => {
       // Use the SECURITY DEFINER function to get itinerary and share info (bypasses RLS)
       // This function verifies the token, checks expiration, and returns both share and itinerary data
+      // IMPORTANT: Use supabase client directly (works for both authenticated and anonymous users)
       const { data: resultData, error: rpcError } = await supabase.rpc(
         "get_itinerary_by_share_token",
         { p_token: token },
       );
 
-      if (rpcError) throw rpcError;
+      // Debug logging
+      if (process.env.NODE_ENV === "development") {
+        console.log("[useShareByToken] Token:", token);
+        console.log("[useShareByToken] RPC Error:", rpcError);
+        console.log("[useShareByToken] RPC Result:", resultData);
+      }
+
+      if (rpcError) {
+        console.error("[useShareByToken] RPC Error Details:", {
+          message: rpcError.message,
+          details: rpcError.details,
+          hint: rpcError.hint,
+          code: rpcError.code,
+        });
+        throw rpcError;
+      }
 
       if (!resultData || resultData.length === 0) {
+        console.warn("[useShareByToken] No data returned for token:", token);
         throw new Error("Share link không hợp lệ hoặc đã hết hạn");
       }
 

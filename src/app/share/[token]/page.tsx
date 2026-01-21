@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useShareByToken } from "@/hooks/useItinerarySharing";
@@ -38,20 +37,7 @@ export default function SharedItineraryPage() {
   const { data: shareData, isLoading, error } = useShareByToken(token || "");
   // const updateStatus = useUpdateCollaborationStatus();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user && token) {
-      const returnUrl = `/share/${token}`;
-      router.push(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`);
-    }
-  }, [user, authLoading, token, router]);
-
-  if (!token || isLoading || authLoading) {
-    return <Loading />;
-  }
-
-  // Don't render content if user is not authenticated (will redirect)
-  if (!user) {
+  if (!token || isLoading) {
     return <Loading />;
   }
 
@@ -60,6 +46,11 @@ export default function SharedItineraryPage() {
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h2 className="mb-4 text-xl font-semibold">{t("share.notFound")}</h2>
+          {error && (
+            <p className="text-muted-foreground mb-3 text-sm">
+              {error instanceof Error ? error.message : String(error)}
+            </p>
+          )}
           <Button onClick={() => router.push("/dashboard")}>
             {t("common.back")} {t("common.dashboard")}
           </Button>
@@ -70,13 +61,28 @@ export default function SharedItineraryPage() {
 
   const itinerary = shareData.itineraries as Itinerary | null;
 
-  if (!itinerary) {
+  if (!itinerary || !itinerary.id) {
+    // Debug logging
+    if (process.env.NODE_ENV === "development") {
+      console.error("[SharedItineraryPage] No itinerary found in shareData:", {
+        shareData,
+        itinerary,
+        hasItineraries: !!shareData.itineraries,
+      });
+    }
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>{t("share.notFound")}</CardTitle>
-            <CardDescription>{t("share.notFoundDescription")}</CardDescription>
+            <CardDescription>
+              {t("share.notFoundDescription")}
+              {process.env.NODE_ENV === "development" && (
+                <div className="text-muted-foreground mt-2 text-xs">
+                  Debug: shareData.itineraries = {JSON.stringify(shareData.itineraries)}
+                </div>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => router.push("/")}>{t("share.backToHome")}</Button>
@@ -86,6 +92,14 @@ export default function SharedItineraryPage() {
     );
   }
   const canEdit = shareData.permission === "edit";
+  const handleOpen = () => {
+    const returnUrl = `/itinerary/${itinerary.id}`;
+    if (user) {
+      router.push(returnUrl);
+    } else {
+      router.push(`/auth?returnUrl=${encodeURIComponent(returnUrl)}`);
+    }
+  };
 
   return (
     <div className="bg-background min-h-screen">
@@ -239,7 +253,7 @@ export default function SharedItineraryPage() {
 
             <div className="border-t pt-4">
               <Button
-                onClick={() => router.push(`/itinerary/${itinerary.id}`)}
+                onClick={handleOpen}
                 className="from-primary to-accent h-12 w-full bg-linear-to-r text-base font-semibold transition-opacity hover:opacity-90"
                 size="lg"
               >
