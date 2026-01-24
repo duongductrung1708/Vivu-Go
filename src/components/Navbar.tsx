@@ -1,12 +1,14 @@
 "use client";
 
-import { MapPin, LogIn, LogOut, User } from "lucide-react";
+import { useState } from "react";
+import { MapPin, LogIn, LogOut, User, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +26,7 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Extract itineraryId from pathname if not provided
   const currentItineraryId = itineraryId || pathname?.match(/\/itinerary\/([^/]+)/)?.[1];
@@ -53,6 +56,14 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
         <div className="flex items-center gap-3">
           <ThemeToggle variant="inline" />
           <LanguageSwitcher />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSettingsOpen(true)}
+            aria-label={t("settings.title", "Cài đặt")}
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
           {user ? (
             <div className="flex items-center gap-3">
               {/* Active Users Avatars */}
@@ -136,6 +147,7 @@ export default function Navbar({ variant = "default", className, itineraryId }: 
           )}
         </div>
       </div>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </nav>
   );
 }

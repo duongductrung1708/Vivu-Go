@@ -423,5 +423,24 @@
     "notFound": "Not found",
     "unauthorized": "Unauthorized access",
     "serverError": "Server error"
+  },
+  "pwa": {
+    "title": "Install App",
+    "installTitle": "Install Vivu Go",
+    "installDescription": "Install the app to use offline and access faster. Itinerary data will be cached so you can view it even without internet.",
+    "installNow": "Install Now",
+    "later": "Later",
+    "installing": "Installing...",
+    "installed": "Installed",
+    "alreadyInstalled": "App is already installed",
+    "notAvailable": "Not Available",
+    "installSuccess": "Installed!",
+    "installSuccessDescription": "Vivu Go has been installed successfully.",
+    "installError": "Cannot Install",
+    "installErrorDescription": "Your browser does not support app installation or the app is already installed."
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage app settings"
   }
 }

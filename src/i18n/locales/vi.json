@@ -422,5 +422,24 @@
     "notFound": "Không tìm thấy",
     "unauthorized": "Không có quyền truy cập",
     "serverError": "Lỗi máy chủ"
+  },
+  "pwa": {
+    "title": "Cài đặt ứng dụng",
+    "installTitle": "Cài đặt Vivu Go",
+    "installDescription": "Cài đặt ứng dụng để sử dụng offline và truy cập nhanh hơn. Dữ liệu lịch trình sẽ được lưu cache để bạn có thể xem ngay cả khi không có internet.",
+    "installNow": "Cài đặt ngay",
+    "later": "Để sau",
+    "installing": "Đang cài đặt...",
+    "installed": "Đã cài đặt",
+    "alreadyInstalled": "Ứng dụng đã được cài đặt",
+    "notAvailable": "Không khả dụng",
+    "installSuccess": "Đã cài đặt!",
+    "installSuccessDescription": "Vivu Go đã được cài đặt thành công.",
+    "installError": "Không thể cài đặt",
+    "installErrorDescription": "Trình duyệt của bạn không hỗ trợ cài đặt ứng dụng hoặc ứng dụng đã được cài đặt."
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "description": "Quản lý cài đặt ứng dụng"
   }
 }
