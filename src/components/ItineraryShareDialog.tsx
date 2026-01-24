@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, cloneElement, isValidElement } from "react";
+import { useTranslation } from "react-i18next";
 import { Copy, Link2, Mail, X, Clock } from "lucide-react";
 import {
   AlertDialog,
@@ -40,7 +41,7 @@ import {
   useRemoveCollaborator,
 } from "@/hooks/useItinerarySharing";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { vi, enUS } from "date-fns/locale";
 
 interface ItineraryShareDialogProps {
   itineraryId: string;
@@ -48,6 +49,8 @@ interface ItineraryShareDialogProps {
 }
 
 export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDialogProps) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === "en" ? enUS : vi;
   const [open, setOpen] = useState(false);
   const [expirationDays, setExpirationDays] = useState<string>("");
   const [inviteEmail, setInviteEmail] = useState("");
@@ -96,15 +99,15 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
       });
 
       toast({
-        title: "Thành công!",
-        description: "Đã tạo link chia sẻ.",
+        title: t("shareDialog.createSuccess", "Thành công!"),
+        description: t("shareDialog.createSuccessDescription", "Đã tạo link chia sẻ."),
       });
       setExpirationDays("");
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể tạo link chia sẻ.",
+        title: t("errors.generic", "Lỗi"),
+        description: t("shareDialog.createError", "Không thể tạo link chia sẻ."),
       });
     }
   };
@@ -113,8 +116,8 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
     const shareUrl = `${window.location.origin}/share/${token}`;
     navigator.clipboard.writeText(shareUrl);
     toast({
-      title: "Đã copy!",
-      description: "Link đã được sao chép vào clipboard.",
+      title: t("shareDialog.copySuccess", "Đã copy!"),
+      description: t("shareDialog.copySuccessDescription", "Link đã được sao chép vào clipboard."),
     });
   };
 
@@ -129,16 +132,16 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
     try {
       await deleteShare.mutateAsync({ shareId: shareToDelete, itineraryId });
       toast({
-        title: "Đã xóa",
-        description: "Link chia sẻ đã được xóa.",
+        title: t("shareDialog.deleteSuccess", "Đã xóa"),
+        description: t("shareDialog.deleteSuccessDescription", "Link chia sẻ đã được xóa."),
       });
       setDeleteShareDialogOpen(false);
       setShareToDelete(null);
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể xóa link chia sẻ.",
+        title: t("errors.generic", "Lỗi"),
+        description: t("shareDialog.deleteError", "Không thể xóa link chia sẻ."),
       });
     }
   };
@@ -147,8 +150,8 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
     if (!inviteEmail.trim()) {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Vui lòng nhập email.",
+        title: t("errors.generic", "Lỗi"),
+        description: t("shareDialog.emailRequired", "Vui lòng nhập email."),
       });
       return;
     }
@@ -161,15 +164,18 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
       });
 
       toast({
-        title: "Đã gửi lời mời!",
-        description: `Đã mời ${inviteEmail} tham gia chỉnh sửa.`,
+        title: t("shareDialog.inviteSuccess", "Đã gửi lời mời!"),
+        description: t("shareDialog.inviteSuccessDescription", "Đã mời {{email}} tham gia chỉnh sửa.", {
+          email: inviteEmail,
+        }),
       });
       setInviteEmail("");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Không thể gửi lời mời.";
+      const errorMessage =
+        error instanceof Error ? error.message : t("shareDialog.inviteError", "Không thể gửi lời mời.");
       toast({
         variant: "destructive",
-        title: "Lỗi",
+        title: t("errors.generic", "Lỗi"),
         description: errorMessage,
       });
     }
@@ -193,9 +199,11 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
         itineraryId,
       });
       toast({
-        title: "Đã xóa",
+        title: t("shareDialog.removeSuccess", "Đã xóa"),
         description:
-          collaboratorStatus === "pending" ? "Đã hủy lời mời cộng tác." : "Đã xóa người cộng tác.",
+          collaboratorStatus === "pending"
+            ? t("shareDialog.cancelInviteSuccess", "Đã hủy lời mời cộng tác.")
+            : t("shareDialog.removeCollaboratorSuccess", "Đã xóa người cộng tác."),
       });
       setRemoveCollaboratorDialogOpen(false);
       setCollaboratorToRemove(null);
@@ -203,8 +211,8 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
     } catch {
       toast({
         variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể xóa người cộng tác.",
+        title: t("errors.generic", "Lỗi"),
+        description: t("shareDialog.removeError", "Không thể xóa người cộng tác."),
       });
     }
   };
@@ -251,7 +259,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
       ) : (
         <div onClick={() => setOpen(true)}>{children}</div>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setOpen} key={i18n.language}>
         <DialogContent
           className="max-h-[80vh] max-w-2xl overflow-y-auto"
           onClick={(e) => {
@@ -278,25 +286,29 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
             }}
           >
             <DialogHeader>
-              <DialogTitle>Chia sẻ lịch trình</DialogTitle>
-              <DialogDescription>Tạo link chia sẻ hoặc mời người khác cộng tác</DialogDescription>
+              <DialogTitle>{t("shareDialog.title", "Chia sẻ lịch trình")}</DialogTitle>
+              <DialogDescription>
+                {t("shareDialog.description", "Tạo link chia sẻ hoặc mời người khác cộng tác")}
+              </DialogDescription>
             </DialogHeader>
 
             <Tabs defaultValue="link" className="mt-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="link">Link chia sẻ</TabsTrigger>
-                <TabsTrigger value="collaborators">Người cộng tác</TabsTrigger>
+                <TabsTrigger value="link">{t("shareDialog.shareLinks", "Link chia sẻ")}</TabsTrigger>
+                <TabsTrigger value="collaborators">
+                  {t("shareDialog.collaborators", "Người cộng tác")}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="link" className="space-y-4">
                 {/* Create new share link */}
                 <div className="space-y-4 rounded-lg border p-4">
                   <div className="space-y-2">
-                    <Label>Thời hạn link (tùy chọn)</Label>
+                    <Label>{t("shareDialog.expirationDays", "Thời hạn link (tùy chọn)")}</Label>
                     <div className="flex gap-2">
                       <Input
                         type="number"
-                        placeholder="Số ngày"
+                        placeholder={t("shareDialog.daysPlaceholder", "Số ngày")}
                         value={expirationDays}
                         onChange={(e) => setExpirationDays(e.target.value)}
                         className="flex-1"
@@ -306,14 +318,14 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                         onClick={() => handleCreateShare("read")}
                         disabled={createShare.isPending}
                       >
-                        Tạo link đọc
+                        {t("shareDialog.createReadLink", "Tạo link đọc")}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => handleCreateShare("edit")}
                         disabled={createShare.isPending}
                       >
-                        Tạo link chỉnh sửa
+                        {t("shareDialog.createEditLink", "Tạo link chỉnh sửa")}
                       </Button>
                     </div>
                   </div>
@@ -321,7 +333,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
 
                 {/* List of shares */}
                 <div className="space-y-2">
-                  <Label>Links đã tạo</Label>
+                  <Label>{t("shareDialog.createdLinks", "Links đã tạo")}</Label>
                   {shares && shares.length > 0 ? (
                     <div className="space-y-2">
                       {shares.map((share) => {
@@ -337,13 +349,19 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                             <div className="min-w-0 flex-1">
                               <div className="mb-1 flex items-center gap-2">
                                 <span className="text-sm font-medium">
-                                  {share.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
+                                  {share.permission === "edit"
+                                    ? t("shareDialog.edit", "Chỉnh sửa")
+                                    : t("shareDialog.read", "Đọc")}
                                 </span>
                                 {isExpired && (
-                                  <span className="text-destructive text-xs">Đã hết hạn</span>
+                                  <span className="text-destructive text-xs">
+                                    {t("shareDialog.expired", "Đã hết hạn")}
+                                  </span>
                                 )}
                                 {!share.is_active && (
-                                  <span className="text-muted-foreground text-xs">Đã tắt</span>
+                                  <span className="text-muted-foreground text-xs">
+                                    {t("shareDialog.inactive", "Đã tắt")}
+                                  </span>
                                 )}
                               </div>
                               <div className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -352,9 +370,9 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                               </div>
                               {share.expires_at && (
                                 <div className="text-muted-foreground mt-1 text-xs">
-                                  Hết hạn:{" "}
+                                  {t("shareDialog.expiresAt", "Hết hạn")}:{" "}
                                   {format(new Date(share.expires_at), "dd/MM/yyyy", {
-                                    locale: vi,
+                                    locale: dateLocale,
                                   })}
                                 </div>
                               )}
@@ -364,6 +382,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleCopyLink(share.share_token)}
+                                title={t("shareDialog.copyLink", "Copy link")}
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
@@ -371,6 +390,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDeleteShareClick(share.id)}
+                                title={t("shareDialog.deleteLink", "Xóa link")}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -381,7 +401,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                     </div>
                   ) : (
                     <p className="text-muted-foreground py-4 text-center text-sm">
-                      Chưa có link chia sẻ nào
+                      {t("shareDialog.noLinks", "Chưa có link chia sẻ nào")}
                     </p>
                   )}
                 </div>
@@ -391,11 +411,11 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                 {/* Invite collaborator */}
                 <div className="space-y-4 rounded-lg border p-4">
                   <div className="space-y-2">
-                    <Label>Mời người cộng tác</Label>
+                    <Label>{t("shareDialog.inviteCollaborator", "Mời người cộng tác")}</Label>
                     <div className="flex gap-2">
                       <Input
                         type="email"
-                        placeholder="Email người dùng"
+                        placeholder={t("shareDialog.userEmailPlaceholder", "Email người dùng")}
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
                         className="flex-1"
@@ -408,13 +428,13 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="read">Đọc</SelectItem>
-                          <SelectItem value="edit">Chỉnh sửa</SelectItem>
+                          <SelectItem value="read">{t("shareDialog.read", "Đọc")}</SelectItem>
+                          <SelectItem value="edit">{t("shareDialog.edit", "Chỉnh sửa")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button onClick={handleInvite} disabled={inviteCollaborator.isPending}>
                         <Mail className="mr-2 h-4 w-4" />
-                        Mời
+                        {t("shareDialog.invite", "Mời")}
                       </Button>
                     </div>
                   </div>
@@ -422,7 +442,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
 
                 {/* List of collaborators */}
                 <div className="space-y-2">
-                  <Label>Người cộng tác</Label>
+                  <Label>{t("shareDialog.collaborators", "Người cộng tác")}</Label>
                   {collaborators && collaborators.length > 0 ? (
                     <div className="space-y-2">
                       {collaborators.map((collab) => (
@@ -434,7 +454,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                             <div className="font-medium">
                               {collab.user_name && collab.user_name !== "Unknown"
                                 ? collab.user_name
-                                : collab.user_email || "Unknown"}
+                                : collab.user_email || t("shareDialog.unknown", "Unknown")}
                             </div>
                             {collab.user_email && (
                               <div className="text-muted-foreground mt-0.5 text-xs">
@@ -444,7 +464,9 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                             <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-sm">
                               <div className="flex items-center gap-1">
                                 <span className="bg-primary/10 text-primary rounded px-2 py-0.5 text-xs font-medium">
-                                  {collab.permission === "edit" ? "Chỉnh sửa" : "Đọc"}
+                                  {collab.permission === "edit"
+                                    ? t("shareDialog.edit", "Chỉnh sửa")
+                                    : t("shareDialog.read", "Đọc")}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
@@ -458,10 +480,10 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                                   }`}
                                 >
                                   {collab.status === "accepted"
-                                    ? "Đã chấp nhận"
+                                    ? t("shareDialog.accepted", "Đã chấp nhận")
                                     : collab.status === "declined"
-                                      ? "Đã từ chối"
-                                      : "Đang chờ"}
+                                      ? t("shareDialog.declined", "Đã từ chối")
+                                      : t("shareDialog.pending", "Đang chờ")}
                                 </span>
                               </div>
                               {collab.created_at && (
@@ -469,12 +491,12 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                                   <Clock className="h-3 w-3" />
                                   <span>
                                     {collab.status === "pending"
-                                      ? "Mời ngày"
+                                      ? t("shareDialog.invitedOn", "Mời ngày")
                                       : collab.status === "accepted"
-                                        ? "Chấp nhận ngày"
-                                        : "Từ chối ngày"}{" "}
+                                        ? t("shareDialog.acceptedOn", "Chấp nhận ngày")
+                                        : t("shareDialog.declinedOn", "Từ chối ngày")}{" "}
                                     {format(new Date(collab.created_at), "dd/MM/yyyy", {
-                                      locale: vi,
+                                      locale: dateLocale,
                                     })}
                                   </span>
                                 </div>
@@ -489,7 +511,9 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                                 handleRemoveCollaboratorClick(collab.id, collab.status)
                               }
                               title={
-                                collab.status === "pending" ? "Hủy lời mời" : "Xóa người cộng tác"
+                                collab.status === "pending"
+                                  ? t("shareDialog.cancelInvite", "Hủy lời mời")
+                                  : t("shareDialog.removeCollaborator", "Xóa người cộng tác")
                               }
                             >
                               <X className="h-4 w-4" />
@@ -500,7 +524,7 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                     </div>
                   ) : (
                     <p className="text-muted-foreground py-4 text-center text-sm">
-                      Chưa có người cộng tác nào
+                      {t("shareDialog.noCollaborators", "Chưa có người cộng tác nào")}
                     </p>
                   )}
                 </div>
@@ -514,18 +538,25 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
       <AlertDialog open={deleteShareDialogOpen} onOpenChange={setDeleteShareDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa link chia sẻ</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("shareDialog.deleteConfirmTitle", "Xác nhận xóa link chia sẻ")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa link chia sẻ này? Link sẽ không còn hoạt động sau khi xóa.
+              {t(
+                "shareDialog.deleteConfirmDescription",
+                "Bạn có chắc chắn muốn xóa link chia sẻ này? Link sẽ không còn hoạt động sau khi xóa.",
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShareToDelete(null)}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShareToDelete(null)}>
+              {t("common.cancel", "Hủy")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteShareConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa
+              {t("common.delete", "Xóa")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -540,13 +571,19 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
           <AlertDialogHeader>
             <AlertDialogTitle>
               {collaboratorStatus === "pending"
-                ? "Xác nhận hủy lời mời"
-                : "Xác nhận xóa người cộng tác"}
+                ? t("shareDialog.cancelInviteConfirmTitle", "Xác nhận hủy lời mời")
+                : t("shareDialog.removeCollaboratorConfirmTitle", "Xác nhận xóa người cộng tác")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {collaboratorStatus === "pending"
-                ? "Bạn có chắc chắn muốn hủy lời mời cộng tác này? Người dùng sẽ không nhận được lời mời nữa."
-                : "Bạn có chắc chắn muốn xóa người cộng tác này? Họ sẽ không còn quyền truy cập vào lịch trình này."}
+                ? t(
+                    "shareDialog.cancelInviteConfirmDescription",
+                    "Bạn có chắc chắn muốn hủy lời mời cộng tác này? Người dùng sẽ không nhận được lời mời nữa.",
+                  )
+                : t(
+                    "shareDialog.removeCollaboratorConfirmDescription",
+                    "Bạn có chắc chắn muốn xóa người cộng tác này? Họ sẽ không còn quyền truy cập vào lịch trình này.",
+                  )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -556,13 +593,15 @@ export function ItineraryShareDialog({ itineraryId, children }: ItineraryShareDi
                 setCollaboratorStatus(null);
               }}
             >
-              Hủy
+              {t("common.cancel", "Hủy")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveCollaboratorConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {collaboratorStatus === "pending" ? "Hủy lời mời" : "Xóa"}
+              {collaboratorStatus === "pending"
+                ? t("shareDialog.cancelInvite", "Hủy lời mời")
+                : t("common.delete", "Xóa")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
