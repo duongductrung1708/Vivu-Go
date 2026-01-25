@@ -35,6 +35,7 @@ type TripStore = {
   selectedPlaceId?: string;
   showNearbyPlacesForPlaceId?: string;
   setTrip: (trip: Trip) => void;
+  updateTrip: (trip: Trip) => void; // Update trip without resetting selectedDayId
   resetTrip: () => void;
   setConfig: (config: {
     name: string;
@@ -83,6 +84,18 @@ export const useTripStore = create<TripStore>()((set, get) => ({
       selectedPlaceId: undefined,
       showNearbyPlacesForPlaceId: undefined,
     })),
+
+  updateTrip: (trip) =>
+    set((state) => {
+      // Preserve selectedDayId if the day still exists in the new trip
+      const currentSelectedDayId = state.selectedDayId;
+      const dayStillExists = trip.days.some((day) => day.id === currentSelectedDayId);
+      return {
+        trip,
+        selectedDayId: dayStillExists ? currentSelectedDayId : trip.days[0]?.id ?? "",
+        // Keep selectedPlaceId and showNearbyPlacesForPlaceId unchanged
+      };
+    }),
 
   resetTrip: () =>
     set(() => ({

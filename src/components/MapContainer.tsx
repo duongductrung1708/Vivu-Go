@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
@@ -118,7 +118,7 @@ export function MapContainer({
   }, [initialRouteCache]);
 
   // Push cache updates upward (debounced-ish by stringify comparison)
-  const pushCacheUpdate = (key: string, entry: RouteCacheEntry) => {
+  const pushCacheUpdate = useCallback((key: string, entry: RouteCacheEntry) => {
     if (!onRouteCacheUpdate) return;
     const nextCache: RouteCacheMap = {
       ...(initialRouteCache ?? {}),
@@ -128,7 +128,71 @@ export function MapContainer({
     if (serialized === lastPushedCacheRef.current) return;
     lastPushedCacheRef.current = serialized;
     onRouteCacheUpdate(nextCache);
-  };
+  }, [onRouteCacheUpdate, initialRouteCache]);
+
+  // Function to fetch route from Mapbox Directions API with caching
+  // Defined early to ensure stable reference for useEffect dependencies
+  const fetchRoute = useCallback(async (
+    coordinates: [number, number][],
+    profile: RouteProfile,
+    persistToDb: boolean,
+  ) => {
+    if (coordinates.length < 2) {
+      return null;
+    }
+
+    // Format coordinates as "lng,lat;lng,lat;..."
+    const coordinatesString = coordinates.map((coord) => `${coord[0]},${coord[1]}`).join(";");
+
+    // Check cache
+    const cacheKey = `${coordinatesString}|${profile}`;
+    const cached = routeCacheRef.current.get(cacheKey);
+    if (cached) {
+      setRouteInfo({ distance: cached.distance, duration: cached.duration });
+      return cached.geometry;
+    }
+
+    try {
+      setIsLoadingRoute(true);
+      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinatesString}?geometries=geojson&access_token=${MAPBOX_TOKEN}&overview=full&steps=true`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        const geometry = route.geometry;
+        const distance = route.distance; // meters
+        const duration = route.duration; // seconds
+
+        // Cache the result
+        const entry: RouteCacheEntry = {
+          coordinates: coordinatesString,
+          profile,
+          geometry,
+          distance,
+          duration,
+          created_at: new Date().toISOString(),
+        };
+        routeCacheRef.current.set(cacheKey, entry);
+        // Persist only for itinerary map (avoid storing personalized "from my location" routes)
+        if (persistToDb && itineraryId) {
+          pushCacheUpdate(cacheKey, entry);
+        }
+
+        setRouteInfo({ distance, duration });
+        return geometry;
+      }
+
+      setRouteInfo(null);
+      return null;
+    } catch {
+      setRouteInfo(null);
+      return null;
+    } finally {
+      setIsLoadingRoute(false);
+    }
+  }, [itineraryId, pushCacheUpdate]);
 
   // Determine time of day: dawn, day, dusk, night
   type TimeOfDay = "dawn" | "day" | "dusk" | "night";
@@ -600,69 +664,6 @@ export function MapContainer({
     };
   }, [customSelectedLocation, isMapLoaded]);
 
-  // Function to fetch route from Mapbox Directions API with caching
-  const fetchRoute = async (
-    coordinates: [number, number][],
-    profile: RouteProfile,
-    persistToDb: boolean,
-  ) => {
-    if (coordinates.length < 2) {
-      return null;
-    }
-
-    // Format coordinates as "lng,lat;lng,lat;..."
-    const coordinatesString = coordinates.map((coord) => `${coord[0]},${coord[1]}`).join(";");
-
-    // Check cache
-    const cacheKey = `${coordinatesString}|${profile}`;
-    const cached = routeCacheRef.current.get(cacheKey);
-    if (cached) {
-      setRouteInfo({ distance: cached.distance, duration: cached.duration });
-      return cached.geometry;
-    }
-
-    try {
-      setIsLoadingRoute(true);
-      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinatesString}?geometries=geojson&access_token=${MAPBOX_TOKEN}&overview=full&steps=true`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-        const geometry = route.geometry;
-        const distance = route.distance; // meters
-        const duration = route.duration; // seconds
-
-        // Cache the result
-        const entry: RouteCacheEntry = {
-          coordinates: coordinatesString,
-          profile,
-          geometry,
-          distance,
-          duration,
-          created_at: new Date().toISOString(),
-        };
-        routeCacheRef.current.set(cacheKey, entry);
-        // Persist only for itinerary map (avoid storing personalized "from my location" routes)
-        if (persistToDb && itineraryId) {
-          pushCacheUpdate(cacheKey, entry);
-        }
-
-        setRouteInfo({ distance, duration });
-        return geometry;
-      }
-
-      setRouteInfo(null);
-      return null;
-    } catch {
-      setRouteInfo(null);
-      return null;
-    } finally {
-      setIsLoadingRoute(false);
-    }
-  };
-
   // Format distance and duration for display
   const formatRouteInfo = useMemo(() => {
     if (!routeInfo) return null;
@@ -882,6 +883,7 @@ export function MapContainer({
     useMyLocation,
     position,
     manualUserLocation,
+    fetchRoute,
   ]);
 
   useEffect(() => {
@@ -962,11 +964,10 @@ export function MapContainer({
               e.stopPropagation();
               handleUseMyLocationClick();
             }}
-            className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
-              useMyLocation
-                ? "bg-primary text-primary-foreground"
-                : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-            }`}
+            className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${useMyLocation
+              ? "bg-primary text-primary-foreground"
+              : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+              }`}
             title={useMyLocation ? "Tắt theo dõi vị trí của tôi" : "Dùng vị trí hiện tại của tôi"}
           >
             <LocateFixed className={`h-4 w-4 ${useMyLocation ? "animate-pulse" : ""}`} />
@@ -981,11 +982,10 @@ export function MapContainer({
               setIsSelectingCustomLocation(true);
               setShowNearbyPlaces(false); // Close nearby places if open
             }}
-            className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
-              isSelectingCustomLocation || customSelectedLocation
-                ? "bg-primary text-primary-foreground"
-                : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-            }`}
+            className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${isSelectingCustomLocation || customSelectedLocation
+              ? "bg-primary text-primary-foreground"
+              : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+              }`}
             title="Chọn vị trí cụ thể trên bản đồ"
           >
             <Crosshair className={`h-4 w-4 ${isSelectingCustomLocation ? "animate-pulse" : ""}`} />
@@ -1024,11 +1024,10 @@ export function MapContainer({
                   e.stopPropagation();
                   setIsSelectingLocation(true);
                 }}
-                className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
-                  isSelectingLocation
-                    ? "bg-accent text-accent-foreground animate-pulse"
-                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-                }`}
+                className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${isSelectingLocation
+                  ? "bg-accent text-accent-foreground animate-pulse"
+                  : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+                  }`}
                 title="Cập nhật vị trí của bạn trên bản đồ"
               >
                 <RefreshCw className={`h-4 w-4 ${isSelectingLocation ? "animate-spin" : ""}`} />
@@ -1042,11 +1041,10 @@ export function MapContainer({
                   e.stopPropagation();
                   setShowNearbyPlaces(!showNearbyPlaces);
                 }}
-                className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
-                  showNearbyPlaces
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-                }`}
+                className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${showNearbyPlaces
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+                  }`}
                 title="Xem địa điểm xung quanh"
               >
                 <Sparkles className="h-4 w-4" />
@@ -1082,11 +1080,10 @@ export function MapContainer({
                 e.stopPropagation();
                 setShowNearbyPlaces(!showNearbyPlaces);
               }}
-              className={`mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${
-                showNearbyPlaces
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-              }`}
+              className={`mt-2 flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium shadow-lg transition ${showNearbyPlaces
+                ? "bg-primary text-primary-foreground"
+                : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+                }`}
               title="Xem địa điểm xung quanh vị trí đã chọn"
             >
               <Sparkles className="h-4 w-4" />
@@ -1122,9 +1119,9 @@ export function MapContainer({
             customSelectedLocation ||
             (position
               ? {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                }
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              }
               : null) ||
             (manualUserLocation
               ? { lat: manualUserLocation.lat, lng: manualUserLocation.lng }
@@ -1163,11 +1160,10 @@ export function MapContainer({
               <button
                 type="button"
                 onClick={() => setIs3DMode(!is3DMode)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-lg transition ${
-                  is3DMode
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium shadow-lg transition ${is3DMode
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card/95 text-foreground hover:bg-card backdrop-blur-sm"
+                  }`}
                 title={is3DMode ? "Tắt chế độ 3D" : "Bật chế độ 3D"}
               >
                 {is3DMode ? <MapIcon className="h-4 w-4" /> : <Box className="h-4 w-4" />}
@@ -1179,11 +1175,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setMapTheme("light")}
-                  className={`px-3 py-2 transition ${
-                    mapTheme === "light"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${mapTheme === "light"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Giao diện sáng"
                 >
                   <Sun className="h-4 w-4" />
@@ -1191,11 +1186,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setMapTheme("dark")}
-                  className={`px-3 py-2 transition ${
-                    mapTheme === "dark"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${mapTheme === "dark"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Giao diện tối"
                 >
                   <Moon className="h-4 w-4" />
@@ -1203,11 +1197,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setMapTheme("auto")}
-                  className={`px-3 py-2 transition ${
-                    mapTheme === "auto"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${mapTheme === "auto"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Tự động theo thời gian"
                 >
                   <Clock className="h-4 w-4" />
@@ -1218,11 +1211,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setRouteProfile("driving")}
-                  className={`px-3 py-2 transition ${
-                    routeProfile === "driving"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${routeProfile === "driving"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Đi bằng ô tô"
                 >
                   <Car className="h-4 w-4" />
@@ -1230,11 +1222,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setRouteProfile("walking")}
-                  className={`px-3 py-2 transition ${
-                    routeProfile === "walking"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${routeProfile === "walking"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Đi bộ"
                 >
                   <Footprints className="h-4 w-4" />
@@ -1242,11 +1233,10 @@ export function MapContainer({
                 <button
                   type="button"
                   onClick={() => setRouteProfile("cycling")}
-                  className={`px-3 py-2 transition ${
-                    routeProfile === "cycling"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`px-3 py-2 transition ${routeProfile === "cycling"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                    }`}
                   title="Đi bằng xe đạp"
                 >
                   <Bike className="h-4 w-4" />

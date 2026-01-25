@@ -49,7 +49,7 @@ export default function ItineraryDetailPage() {
   const { data: canEdit = false, isLoading: isLoadingPermission } =
     useCanEditItinerary(itineraryId);
   const updateItinerary = useUpdateItinerary();
-  const { trip, setTrip, getTotalCost, getCostPerPerson } = useTripStore();
+  const { trip, setTrip, updateTrip, getTotalCost, getCostPerPerson } = useTripStore();
   const [showConfig, setShowConfig] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
@@ -146,6 +146,10 @@ export default function ItineraryDetailPage() {
     }
   }, [authLoading, user, router]);
 
+  // Track if we've done initial hydration to avoid resetting selectedDayId on auto-save
+  const hasInitialHydratedRef = useRef(false);
+  const lastHydratedItineraryIdRef = useRef<string>("");
+  
   // Hydrate trip data from the saved itinerary (no localStorage)
   useEffect(() => {
     if (itinerary?.trip_data && !isApplyingRemoteChange) {
@@ -157,11 +161,32 @@ export default function ItineraryDetailPage() {
         peopleCount: itinerary.people_count ?? itinerary.trip_data.peopleCount,
         totalBudget: itinerary.total_budget ?? itinerary.trip_data.totalBudget,
       };
-      setTrip(newTrip);
-      // Update last saved reference
-      lastSavedTripRef.current = JSON.stringify(newTrip);
+      
+      // Only hydrate if this is a different itinerary or initial load
+      const isInitialLoad = !hasInitialHydratedRef.current;
+      const isDifferentItinerary = lastHydratedItineraryIdRef.current !== itineraryId;
+      
+      // Check if this update is from our own auto-save (trip data matches what we just saved)
+      const newTripString = JSON.stringify(newTrip);
+      const isFromOurAutoSave = lastSavedTripRef.current === newTripString;
+      
+      if (isInitialLoad || (isDifferentItinerary && !isFromOurAutoSave)) {
+        if (isInitialLoad || isDifferentItinerary) {
+          // Initial load or different itinerary: use setTrip to set everything
+          setTrip(newTrip);
+        } else {
+          // Same itinerary, external change: use updateTrip to preserve selectedDayId
+          updateTrip(newTrip);
+        }
+        
+        hasInitialHydratedRef.current = true;
+        lastHydratedItineraryIdRef.current = itineraryId;
+      }
+      
+      // Always update last saved reference when itinerary changes
+      lastSavedTripRef.current = newTripString;
     }
-  }, [itinerary, setTrip, isApplyingRemoteChange]);
+  }, [itinerary, itineraryId, setTrip, updateTrip, isApplyingRemoteChange]);
 
   // Hydrate route cache from DB (kept separate from trip auto-save)
   useEffect(() => {
